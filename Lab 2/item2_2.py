@@ -16,13 +16,10 @@ def day_of_year(day, month, year):
         day_in_month[1] = 29
 
     for x in range(month-1):
-        # print(day_in_month[x])
         day_sum += day_in_month[x]
 
     day_sum += day
 
-    # return day_sum
-    print ("day of year: %d is_leap: %r" % (day_sum, is_leap(year)))
     return day_sum
 
 def date_diff(day1,day2):
@@ -50,9 +47,11 @@ def date_diff(day1,day2):
     return final_cal
 
 
-
-value = input()
-# value = ("14-8-1905,5-1-2000")
-value =[str(e) for e in value.split(",")]
-output = date_diff(value[0],value[1])
-print(output)
+try:
+    value = input()
+    value =[str(e) for e in value.split(",")]
+    output = date_diff(value[0],value[1])
+except:
+    print("Invalid")
+else:
+    print(output)

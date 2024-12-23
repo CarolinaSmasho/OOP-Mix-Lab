@@ -1,2 +1,1 @@
-perty in dictionary_record[id].get(property) is None:
-        return "Invalid"
+{'65010001': {'python': 50}} | '65010001' | 'calculus' | 60
