@@ -13,9 +13,7 @@ def add_score(subject_score, student, subject, score):
 
     avg = calc_average_score(subject_score, student)
 
-    # print(f"{subject_score}, Average score: {avg:.2f}")
-    # return subject_score, avg
-    print(f"{subject_score}, Average score: {avg}")
+    return (f"{subject_score}, Average score: {avg}")
 
 def calc_average_score(subject_score, student):
     avg = {}
@@ -34,10 +32,9 @@ def calc_average_score(subject_score, student):
     return avg
 
 
-value = "{'65010001': {'python': 50}} | '65010001' | 'calculus' | 60"
-# value = input()
+value = input()
 
 value =[str(e) for e in value.split("|")]
 output = add_score(value[0],value[1],value[2],value[3])
 
-# print(output)
+print(output)
