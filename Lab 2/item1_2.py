@@ -30,6 +30,6 @@ def day_of_year(day, month, year):
 
 value = input()
 # value = ("1/3/2023")
-value =[str(e) for e in value.split("/")]
+value =[str(e) for e in value.split("-")]
 output = day_of_year(value[0],value[1],value[2])
 print(output)
