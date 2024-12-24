@@ -31,10 +31,11 @@ def calc_average_score(subject_score, student):
     
     return avg
 
-
-value = input()
-
-value =[str(e) for e in value.split("|")]
-output = add_score(value[0],value[1],value[2],value[3])
-
-print(output)
+try:
+    value = input()
+    value =[str(e) for e in value.split("|")]
+    output = add_score(value[0],value[1],value[2],value[3])
+except: 
+    print("Invalid")
+else:
+    print(output)
