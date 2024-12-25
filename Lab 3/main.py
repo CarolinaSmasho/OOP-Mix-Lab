@@ -2,7 +2,8 @@ class Student:
     def __init__(self, id, name):
         self.__student_id = id
         self.__student_name = name
-        
+        self.__grade = ""
+
     def get_student_name(self):
         return self.__student_name
     
@@ -29,6 +30,10 @@ class Subject:
     def get_teacher(self):
         return self.__subject_teacher
     
+    def get_subject_credit(self):
+        return self.__credit
+    credit = property(get_subject_credit)
+    
     def assign_teacher(self, teacher):
         self.__subject_teacher = teacher
     
@@ -49,6 +54,7 @@ class Enrollment:
     def __init__(self, subject, student):
         self.__enrollment_student = student
         self.__enrollment_subject = subject
+        self.__grade = ""
     def get_student(self):
         return self.__enrollment_student
     def get_subject(self):
@@ -56,6 +62,13 @@ class Enrollment:
     def __str__(self):
         return "Enroll: " + self.__enrollment_student.__str__() + " in " + self.__enrollment_subject.__str__()
 
+    def set_grade(self, grade):
+        self.__grade = grade
+
+    def get_grade(self):
+        return self.__grade
+    
+    grade = property(get_grade, set_grade)
 
 
 student_list = []
@@ -137,7 +150,12 @@ def search_subject_that_student_enrolled(student):
 
 # TODO 8 : function สำหรับใส่เกรดลงในการลงทะเบียน โดยรับ instance ของ student และ subject
 def assign_grade(student, subject, grade):
-    pass
+    if isinstance(student, Student) and isinstance(subject, Subject):
+        enrollment = search_enrollment_subject_student(subject, student)
+        enrollment.grade = grade
+        return "Done"
+    else:
+        return "Not Found"
 
 # TODO 9 : function สำหรับคืน instance ของอาจารย์ที่สอนในวิชา
 def get_teacher_teach(subject_search):
@@ -161,7 +179,15 @@ def get_no_of_student_enrolled(subject):
 # TODO 11 : function สำหรับค้นหาข้อมูลการลงทะเบียนและผลการเรียนโดยรับ instance ของ student
 # TODO : และ คืนค่าเป็น dictionary { ‘subject_id’ : [‘subject_name’, ‘grade’ }
 def get_student_record(student):
-    pass
+    if isinstance(student, Student):
+        student_record = {}
+        for x in enrollment_list:
+            if x.get_student() == student:
+                # student_record[x.get_subject().get_subject_id()] = [x.get_subject().get_subject_name(), x.get_grade()]
+                student_record[x.get_subject().get_subject_id()]  = [x.get_subject().get_subject_name(), x.get_grade()]
+        return student_record
+    else:
+        return "Error"
 
 # แปลงจาก เกรด เป็นตัวเลข
 def grade_to_count(grade):
@@ -170,7 +196,16 @@ def grade_to_count(grade):
 
 # TODO 12 : function สำหรับคำนวณเกรดเฉลี่ยของนักศึกษา โดยรับ instance ของ student
 def get_student_GPS(student):
-    pass
+    if isinstance(student, Student):
+        sum_grade = 0
+        sum_credit = 0
+        for x in enrollment_list:
+            if x.get_student() == student:
+                sum_grade += grade_to_count(x.grade) * x.get_subject().credit
+                sum_credit += x.get_subject().credit
+        return sum_grade/sum_credit
+    else:
+        return "Error"
 
 # ค้นหานักศึกษาลงทะเบียน โดยรับเป็น รหัสวิชา และคืนค่าเป็น dictionary {รหัส นศ. : ชื่อ นศ.}
 def list_student_enrolled_in_subject(subject_id):
@@ -318,18 +353,21 @@ enroll = search_enrollment_subject_student(subject_list[0],student_list[1])
 print(enroll.get_subject().get_subject_id(),enroll.get_student().get_student_id())
 print("")
 
-# print("Student List---------------------------------")
-# for x in student_list:
-#     print(x)
-# print("Subject List---------------------------------")
-# for x in subject_list:
-#     print(x)
-# print("Teacher List---------------------------------")
-# for x in teacher_list:
-#     print(x)
+### Test case #12 : assign_grade
+print("Test case #12 assign_grade")
+print("Answer : Done")
+assign_grade(student_list[1],subject_list[0],'A')
+assign_grade(student_list[1],subject_list[1],'B')
+print(assign_grade(student_list[1],subject_list[2],'C'))
+print("")
 
+### Test case #13 : get_student_record
+print("Test case #13 get_student_record")
+print("Answer : {'CS101': ['Computer Programming 1', 'A'], 'CS102': ['Computer Programming 2', 'B'], 'CS103': ['Data Structure', 'C']}")
+print(get_student_record(student_list[1]))
+print("")
 
-# subject = search_subject_by_id('CS101')
-# filter_student_list = search_student_enroll_in_subject(subject)
-# for x in filter_student_list:
-#     print(x.get_student_name(), x.get_student_id())
+### Test case #14 : get_student_GPS
+print("Test case #14 get_student_GPS")
+print("Answer : 3.0")
+print(get_student_GPS(student_list[1]))
