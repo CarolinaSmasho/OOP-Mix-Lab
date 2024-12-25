@@ -26,6 +26,9 @@ class Subject:
     def get_subject_name(self):
         return self.__subject_name
     
+    def get_teacher(self):
+        return self.__subject_teacher
+    
     def assign_teacher(self, teacher):
         self.__subject_teacher = teacher
     
@@ -39,6 +42,9 @@ class Teacher:
         self.__teacher_id = id
         self.__teacher_name = name
 
+    def get_teacher_name(self):
+        return self.__teacher_name
+    teacher_name = property(get_teacher_name)
 class Enrollment:
     def __init__(self, subject, student):
         self.__enrollment_student = student
@@ -128,7 +134,11 @@ def assign_grade(student, subject, grade):
 
 # TODO 9 : function สำหรับคืน instance ของอาจารย์ที่สอนในวิชา
 def get_teacher_teach(subject_search):
-    pass
+    if isinstance(subject_search, Subject):
+        return subject_search.get_teacher()
+    else:
+        return "Error"
+    
 
 # TODO 10 : function สำหรับค้นหาจำนวนของนักศึกษาที่ลงทะเบียนในรายวิชา โดยรับ instance ของ subject
 def get_no_of_student_enrolled(subject):
@@ -288,11 +298,12 @@ lst = search_subject_that_student_enrolled(student_list[0])
 print([i.get_subject().get_subject_id() for i in lst])
 print("")
 
-# ### Test case #10 : get_teacher_teach
-# print("Test case #10 get_teacher_teach")
-# print("Answer : Mr. Welsh")
-# print(get_teacher_teach(subject_list[0]).teacher_name)
-# print("")
+### Test case #10 : get_teacher_teach
+print("Test case #10 get_teacher_teach")
+print("Answer : Mr. Welsh")
+print(get_teacher_teach(subject_list[0]).teacher_name)
+print("")
+
 
 
 # print("Student List---------------------------------")
