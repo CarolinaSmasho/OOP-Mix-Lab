@@ -105,7 +105,14 @@ def drop_from_subject(student, subject):
 
 # TODO 5 : function สำหรับค้นหาการลงทะเบียน โดยรับ instance ของ student และ subject
 def search_enrollment_subject_student(subject, student):
-    pass
+    if isinstance(subject, Subject) and isinstance(student, Student):
+        for x in enrollment_list:
+            if x.get_student() == student and x.get_subject() == subject:
+                return x
+        else:
+            return None
+    else:
+        return "Error"
 
 # TODO 6 : function สำหรับค้นหาการลงทะเบียนในรายวิชา โดยรับ instance ของ subject
 def search_student_enroll_in_subject(subject):
@@ -304,7 +311,12 @@ print("Answer : Mr. Welsh")
 print(get_teacher_teach(subject_list[0]).teacher_name)
 print("")
 
-
+### Test case #11 : search_enrollment_subject_student
+print("Test case #11 search_enrollment_subject_student")
+print("Answer : CS101 66010002")
+enroll = search_enrollment_subject_student(subject_list[0],student_list[1])
+print(enroll.get_subject().get_subject_id(),enroll.get_student().get_student_id())
+print("")
 
 # print("Student List---------------------------------")
 # for x in student_list:
