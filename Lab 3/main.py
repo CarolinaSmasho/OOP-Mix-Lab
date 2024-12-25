@@ -81,7 +81,7 @@ def enroll_to_subject(student, subject):
                 enrollment_list.append(Enrollment(subject, student))
                 return "Done"
             else:
-                return "Error"
+                return "Already Enrolled"
     else:
         return"Error"
 
@@ -89,8 +89,8 @@ def enroll_to_subject(student, subject):
 def drop_from_subject(student, subject):
     if  isinstance(student,Student) and isinstance(subject, Subject):
         for x in enrollment_list:
-            if x.student == student and x.subject == subject:
-                enrollment_list.remove(Enrollment(subject, student))
+            if x.get_student() == student and x.get_subject() == subject:
+                enrollment_list.remove(x)
                 return "Done"
             else:
                 return "Not Found"
@@ -113,7 +113,14 @@ def search_student_enroll_in_subject(subject):
 
 # TODO 7 : function สำหรับค้นหาการลงทะเบียนของนักศึกษาว่ามีวิชาอะไรบ้าง โดยรับ instance ของ student
 def search_subject_that_student_enrolled(student):
-    pass
+    if  isinstance(student, Student):
+        filter_list=[]
+        for x in enrollment_list:
+            if x.get_student() == student:
+                filter_list.append(x)
+        return filter_list
+    else:
+        return"Error"
 
 # TODO 8 : function สำหรับใส่เกรดลงในการลงทะเบียน โดยรับ instance ของ student และ subject
 def assign_grade(student, subject, grade):
@@ -125,7 +132,14 @@ def get_teacher_teach(subject_search):
 
 # TODO 10 : function สำหรับค้นหาจำนวนของนักศึกษาที่ลงทะเบียนในรายวิชา โดยรับ instance ของ subject
 def get_no_of_student_enrolled(subject):
-    pass
+    if  isinstance(subject, Subject):
+        count = 0
+        for x in enrollment_list:
+            if x.get_subject() == subject:
+                count += 1
+        return count
+    else:
+        return"Error"
 
 # TODO 11 : function สำหรับค้นหาข้อมูลการลงทะเบียนและผลการเรียนโดยรับ instance ของ student
 # TODO : และ คืนค่าเป็น dictionary { ‘subject_id’ : [‘subject_name’, ‘grade’ }
@@ -222,15 +236,65 @@ print("Answer : {'66010001': 'Keanu Welsh', '66010002': 'Khadijah Burton', '6601
 print("Answer :" ,student_enroll)
 print("")
 
-# ### Test case #2 : test enroll_to_subject in case of invalid argument
-# print("Test case #2 : test enroll_to_subject in case of invalid argument")
-# print("Answer : Error")
-# print(enroll_to_subject('66010001','CS101'))
+### Test case #2 : test enroll_to_subject in case of invalid argument
+print("Test case #2 : test enroll_to_subject in case of invalid argument")
+print("Answer : Error")
+print(enroll_to_subject('66010001','CS101'))
+print("")
+
+### Test case #3 : test enroll_to_subject in case of duplicate enrolled
+print("Test case #3 : test enroll_to_subject in case of duplicate enrolled")
+print("Answer : Already Enrolled")
+print(enroll_to_subject(student_list[0], subject_list[0]))
+print("")
+
+### Test case #4 : test drop_from_subject in case of invalid argument 
+print("Test case #4 : test drop_from_subject in case of invalid argument")
+print("Answer : Error")
+print(drop_from_subject('66010001', 'CS101'))
+print("")
+    
+### Test case #5 : test drop_from_subject in case of not found 
+print("Test case #5 : test drop_from_subject in case of not found")
+print("Answer : Not Found")
+print(drop_from_subject(student_list[8], subject_list[0]))
+print("")
+
+### Test case #6 : test drop_from_subject in case of drop successful
+print("Test case #6 : test drop_from_subject in case of drop successful")
+print("Answer : {'66010002': 'Khadijah Burton', '66010003': 'Jean Caldwell', '66010004': 'Jayden Mccall', '66010005': 'Owain Johnston', '66010007': 'Frances Haynes'}")
+drop_from_subject(student_list[0], subject_list[0])
+print(list_student_enrolled_in_subject(subject_list[0].subject_id))
+print("")
+
+
+### Test case #7 : test search_student_enrolled_in_subject
+print("Test case #7 : test search_student_enrolled_in_subject")
+print("Answer : ['66010002','66010003','66010004','66010005','66010007']")
+lst = search_student_enroll_in_subject(subject_list[0])
+print([i.get_student().get_student_id() for i in lst])
+print("")
+
+### Test case #8 : get_no_of_student_enrolled
+print("Test case #8 get_no_of_student_enrolled")
+print("Answer : 5")
+print(get_no_of_student_enrolled(subject_list[0]))
+print("")
+
+### Test case #9 : search_subject_that_student_enrolled
+print("Test case #9 search_subject_that_student_enrolled")
+print("Answer : ['CS102','CS103']")
+lst = search_subject_that_student_enrolled(student_list[0])
+print([i.get_subject().get_subject_id() for i in lst])
+print("")
+
+# ### Test case #10 : get_teacher_teach
+# print("Test case #10 get_teacher_teach")
+# print("Answer : Mr. Welsh")
+# print(get_teacher_teach(subject_list[0]).teacher_name)
 # print("")
 
 
-
-    
 # print("Student List---------------------------------")
 # for x in student_list:
 #     print(x)
