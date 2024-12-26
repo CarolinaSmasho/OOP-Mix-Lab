@@ -102,11 +102,10 @@ def enroll_to_subject(student, subject):
             return "Done"
         
         for x in enrollment_list:
-            if x.student != student or x.subject != subject:
-                enrollment_list.append(Enrollment(subject, student))
-                return "Done"
-            else:
+            if x.student == student and x.subject == subject:
                 return "Already Enrolled"
+        enrollment_list.append(Enrollment(subject, student))
+        return "Done"
     else:
         return"Error"
 
