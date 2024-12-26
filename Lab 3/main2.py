@@ -1,15 +1,15 @@
-# Fix code branch
-
 class Student:
     def __init__(self, id, name):
         self.__student_id = id
         self.__student_name = name
         self.__grade = ""
 
-    def get_student_name(self):
+    @property
+    def student_name(self):
         return self.__student_name
-    
-    def get_student_id(self):
+
+    @property 
+    def student_id(self):
         return self.__student_id
 
     def __str__(self):
@@ -23,54 +23,58 @@ class Subject:
         self.__credit = credit
         self.__subject_teacher= ""
         
-    def get_subject_id(self):
+    @property
+    def subject_id(self):
         return self.__subject_id
     
-    def get_subject_name(self):
+    @property
+    def subject_name(self):
         return self.__subject_name
     
-    def get_teacher(self):
+    @property
+    def teacher(self):
         return self.__subject_teacher
     
-    def get_subject_credit(self):
+    @property
+    def credit(self):
         return self.__credit
-    credit = property(get_subject_credit)
     
     def assign_teacher(self, teacher):
         self.__subject_teacher = teacher
     
-    subject_id = property(get_subject_id)
-
     def __str__(self):
         return "My Class: " + self.__subject_name
-    
+
+
 class Teacher:
     def __init__(self, id, name):
         self.__teacher_id = id
         self.__teacher_name = name
 
-    def get_teacher_name(self):
+    @property
+    def teacher_name(self):
         return self.__teacher_name
-    teacher_name = property(get_teacher_name)
+
 class Enrollment:
     def __init__(self, subject, student):
         self.__enrollment_student = student
         self.__enrollment_subject = subject
         self.__grade = ""
-    def get_student(self):
+
+    @property
+    def student(self):
         return self.__enrollment_student
-    def get_subject(self):
+    @property
+    def subject(self):
         return self.__enrollment_subject
+    @property
+    def grade(self):
+        return self.__grade
+    @grade.setter
+    def grade(self, grade):
+        self.__grade = grade
     def __str__(self):
         return "Enroll: " + self.__enrollment_student.__str__() + " in " + self.__enrollment_subject.__str__()
-
-    def set_grade(self, grade):
-        self.__grade = grade
-
-    def get_grade(self):
-        return self.__grade
-    
-    grade = property(get_grade, set_grade)
 
 
 student_list = []
@@ -98,11 +102,10 @@ def enroll_to_subject(student, subject):
             return "Done"
         
         for x in enrollment_list:
-            if x.get_student() != student or x.get_subject() != subject:
-                enrollment_list.append(Enrollment(subject, student))
-                return "Done"
-            else:
+            if x.student == student and x.subject == subject:
                 return "Already Enrolled"
+        enrollment_list.append(Enrollment(subject, student))
+        return "Done"
     else:
         return"Error"
 
@@ -110,7 +113,7 @@ def enroll_to_subject(student, subject):
 def drop_from_subject(student, subject):
     if  isinstance(student,Student) and isinstance(subject, Subject):
         for x in enrollment_list:
-            if x.get_student() == student and x.get_subject() == subject:
+            if x.student == student and x.subject == subject:
                 enrollment_list.remove(x)
                 return "Done"
             else:
@@ -122,7 +125,7 @@ def drop_from_subject(student, subject):
 def search_enrollment_subject_student(subject, student):
     if isinstance(subject, Subject) and isinstance(student, Student):
         for x in enrollment_list:
-            if x.get_student() == student and x.get_subject() == subject:
+            if x.student == student and x.subject == subject:
                 return x
         else:
             return None
@@ -133,10 +136,9 @@ def search_enrollment_subject_student(subject, student):
 def search_student_enroll_in_subject(subject):
     filter_list=[]
     for x in enrollment_list:
-        if x.get_subject() == subject:
+        if x.subject == subject:
             filter_list.append(x)
         
-
     return filter_list
 
 # TODO 7 : function สำหรับค้นหาการลงทะเบียนของนักศึกษาว่ามีวิชาอะไรบ้าง โดยรับ instance ของ student
@@ -144,7 +146,7 @@ def search_subject_that_student_enrolled(student):
     if  isinstance(student, Student):
         filter_list=[]
         for x in enrollment_list:
-            if x.get_student() == student:
+            if x.student == student:
                 filter_list.append(x)
         return filter_list
     else:
@@ -162,21 +164,21 @@ def assign_grade(student, subject, grade):
 # TODO 9 : function สำหรับคืน instance ของอาจารย์ที่สอนในวิชา
 def get_teacher_teach(subject_search):
     if isinstance(subject_search, Subject):
-        return subject_search.get_teacher()
+        return subject_search.teacher
     else:
         return "Error"
-    
 
 # TODO 10 : function สำหรับค้นหาจำนวนของนักศึกษาที่ลงทะเบียนในรายวิชา โดยรับ instance ของ subject
 def get_no_of_student_enrolled(subject):
     if  isinstance(subject, Subject):
         count = 0
         for x in enrollment_list:
-            if x.get_subject() == subject:
+            if x.subject == subject:
                 count += 1
         return count
     else:
         return"Error"
+    
 
 # TODO 11 : function สำหรับค้นหาข้อมูลการลงทะเบียนและผลการเรียนโดยรับ instance ของ student
 # TODO : และ คืนค่าเป็น dictionary { ‘subject_id’ : [‘subject_name’, ‘grade’ }
@@ -184,9 +186,8 @@ def get_student_record(student):
     if isinstance(student, Student):
         student_record = {}
         for x in enrollment_list:
-            if x.get_student() == student:
-                # student_record[x.get_subject().get_subject_id()] = [x.get_subject().get_subject_name(), x.get_grade()]
-                student_record[x.get_subject().get_subject_id()]  = [x.get_subject().get_subject_name(), x.get_grade()]
+            if x.student == student:           
+                student_record[x.subject.subject_id]  = [x.subject.subject_name, x.grade]
         return student_record
     else:
         return "Error"
@@ -202,9 +203,9 @@ def get_student_GPS(student):
         sum_grade = 0
         sum_credit = 0
         for x in enrollment_list:
-            if x.get_student() == student:
-                sum_grade += grade_to_count(x.grade) * x.get_subject().credit
-                sum_credit += x.get_subject().credit
+            if x.student == student:
+                sum_grade += grade_to_count(x.grade) * x.subject.credit
+                sum_credit += x.subject.credit
         return sum_grade/sum_credit
     else:
         return "Error"
@@ -217,7 +218,7 @@ def list_student_enrolled_in_subject(subject_id):
     filter_student_list = search_student_enroll_in_subject(subject)
     student_dict = {}
     for enrollment in filter_student_list:
-        student_dict[enrollment.get_student().get_student_id()] = enrollment.get_student().get_student_name()
+        student_dict[enrollment.student.student_id] = enrollment.student.student_name
     return student_dict
 
 # ค้นหาวิชาที่นักศึกษาลงทะเบียน โดยรับเป็น รหัสนักศึกษา และคืนค่าเป็น dictionary {รหัสวิชา : ชื่อวิชา }
@@ -225,7 +226,7 @@ def list_subject_enrolled_by_student(student_id):
     student = search_student_by_id(student_id)
     if student is None:
         return "Student not found"
-    filter_subject_list = search_subject_that_student_enrolled(student)
+    filter_subject_list = self.search_subject_that_student_enrolled(student)
     subject_dict = {}
     for enrollment in filter_subject_list:
         subject_dict[enrollment.subject.subject_id] = enrollment.subject.subject_name
@@ -287,7 +288,7 @@ register()
 student_enroll = list_student_enrolled_in_subject('CS101')
 print("Test Case #1 : test enroll_to_subject complete")
 print("Answer : {'66010001': 'Keanu Welsh', '66010002': 'Khadijah Burton', '66010003': 'Jean Caldwell', '66010004': 'Jayden Mccall', '66010005': 'Owain Johnston', '66010007': 'Frances Haynes'}")
-print("Answer :" ,student_enroll)
+print(student_enroll)
 print("")
 
 ### Test case #2 : test enroll_to_subject in case of invalid argument
@@ -307,7 +308,7 @@ print("Test case #4 : test drop_from_subject in case of invalid argument")
 print("Answer : Error")
 print(drop_from_subject('66010001', 'CS101'))
 print("")
-    
+
 ### Test case #5 : test drop_from_subject in case of not found 
 print("Test case #5 : test drop_from_subject in case of not found")
 print("Answer : Not Found")
@@ -321,12 +322,11 @@ drop_from_subject(student_list[0], subject_list[0])
 print(list_student_enrolled_in_subject(subject_list[0].subject_id))
 print("")
 
-
 ### Test case #7 : test search_student_enrolled_in_subject
 print("Test case #7 : test search_student_enrolled_in_subject")
 print("Answer : ['66010002','66010003','66010004','66010005','66010007']")
 lst = search_student_enroll_in_subject(subject_list[0])
-print([i.get_student().get_student_id() for i in lst])
+print([i.student.student_id for i in lst])
 print("")
 
 ### Test case #8 : get_no_of_student_enrolled
@@ -339,7 +339,7 @@ print("")
 print("Test case #9 search_subject_that_student_enrolled")
 print("Answer : ['CS102','CS103']")
 lst = search_subject_that_student_enrolled(student_list[0])
-print([i.get_subject().get_subject_id() for i in lst])
+print([i.subject.subject_id for i in lst])
 print("")
 
 ### Test case #10 : get_teacher_teach
@@ -352,7 +352,7 @@ print("")
 print("Test case #11 search_enrollment_subject_student")
 print("Answer : CS101 66010002")
 enroll = search_enrollment_subject_student(subject_list[0],student_list[1])
-print(enroll.get_subject().get_subject_id(),enroll.get_student().get_student_id())
+print(enroll.subject.subject_id,enroll.student.student_id)
 print("")
 
 ### Test case #12 : assign_grade
