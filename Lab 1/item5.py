@@ -44,7 +44,3 @@ except:
 else:
     print(output)
 
-
-
-    
-    
