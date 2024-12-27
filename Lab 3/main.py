@@ -5,13 +5,11 @@ class Student:
         self.__student_id = id
         self.__student_name = name
         self.__grade = ""
-
     def get_student_name(self):
         return self.__student_name
     
     def get_student_id(self):
         return self.__student_id
-
     def __str__(self):
         return "Student: " + self.__student_name
 
@@ -40,18 +38,18 @@ class Subject:
         self.__subject_teacher = teacher
     
     subject_id = property(get_subject_id)
-
     def __str__(self):
         return "My Class: " + self.__subject_name
     
+
 class Teacher:
     def __init__(self, id, name):
         self.__teacher_id = id
         self.__teacher_name = name
-
     def get_teacher_name(self):
         return self.__teacher_name
     teacher_name = property(get_teacher_name)
+
 class Enrollment:
     def __init__(self, subject, student):
         self.__enrollment_student = student
@@ -63,10 +61,8 @@ class Enrollment:
         return self.__enrollment_subject
     def __str__(self):
         return "Enroll: " + self.__enrollment_student.__str__() + " in " + self.__enrollment_subject.__str__()
-
     def set_grade(self, grade):
         self.__grade = grade
-
     def get_grade(self):
         return self.__grade
     
@@ -88,7 +84,11 @@ def search_subject_by_id(subject_id):
 
 # TODO 2 : function สำหรับค้นหา instance ของนักศึกษาใน student_list
 def search_student_by_id(student_id):
-    pass
+    for x in student_list:
+        if x.student_id == student_id:
+            return x
+    else:
+        return None
 
 # TODO 3 : function สำหรับสร้างการลงทะเบียน โดยรับ instance ของ student และ subject
 def enroll_to_subject(student, subject):
@@ -307,7 +307,7 @@ print("Test case #4 : test drop_from_subject in case of invalid argument")
 print("Answer : Error")
 print(drop_from_subject('66010001', 'CS101'))
 print("")
-    
+
 ### Test case #5 : test drop_from_subject in case of not found 
 print("Test case #5 : test drop_from_subject in case of not found")
 print("Answer : Not Found")

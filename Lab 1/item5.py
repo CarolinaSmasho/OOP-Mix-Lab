@@ -18,6 +18,8 @@ def sort_num (List):
     return handle_zero(sort)
 
 def handle_zero(List):
+    if len(List) > 10:
+        return "Invalid"
     zeronum = 0
     for num in List:
         if num == 0:
@@ -35,8 +37,12 @@ def handle_zero(List):
     
 
 List = input()
-output = sort_num(List)
-print(output)
+try:
+    output = sort_num(List)
+except:
+    print ("Invalid")
+else:
+    print(output)
 
 
 

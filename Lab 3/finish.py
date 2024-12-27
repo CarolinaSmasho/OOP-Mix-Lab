@@ -92,7 +92,11 @@ def search_subject_by_id(subject_id):
 
 # TODO 2 : function สำหรับค้นหา instance ของนักศึกษาใน student_list
 def search_student_by_id(student_id):
-    pass
+    for x in student_list:
+        if x.student_id == student_id:
+            return x
+    else:
+        return None
 
 # TODO 3 : function สำหรับสร้างการลงทะเบียน โดยรับ instance ของ student และ subject
 def enroll_to_subject(student, subject):
