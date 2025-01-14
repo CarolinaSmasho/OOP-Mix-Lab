@@ -127,7 +127,7 @@ class Card:
 
 class TransactionChannel:
     def __init__(self, channel_id, bank):
-        self.__channel _id = channel_id
+        self.__channel_id = channel_id
         self.__bank = bank
         
     @property
