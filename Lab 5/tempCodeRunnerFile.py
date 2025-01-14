@@ -1,1 +1,1 @@
-add_account
+Error : amount must be greater than 0

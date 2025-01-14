@@ -120,7 +120,7 @@ class Transaction:
         self.__amount = amount
         self.__balance = balance
 
-    def __str__(self): # TODO:
+    def __str__(self): 
         # return f"{self.__transaction_type}-{self.__source}-{self.__amount}-{self.__balance}"
         return f"{self.__transaction_type}-{self.__source}:"
         
@@ -197,6 +197,8 @@ class ATMMachine(TransactionChannel):
         return "Error"
 
     def deposit(self, account, amount):
+        if amount <= 0 :
+            return "Error : amount must be greater than 0"
         newtransaction = Transaction("D","ATM",amount,account.balance)
         account.transaction_add(newtransaction)
         return account.deposit(self.channel_id, amount)
@@ -362,37 +364,37 @@ class BankingTest(unittest.TestCase):
         self.assertEqual(self.tony_savings.balance, expected_balance, 
                         f"Balance should be {expected_balance}")
     
-        # Verify transaction history TODO:
+        # Verify transaction history 
         transactions = self.tony_savings.transaction
         self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
         latest_transaction = transactions[-1]
         self.assertIn("D-ATM:", str(latest_transaction), "Transaction should be a deposit via ATM")
 
-    # def test_negative_deposit(self): # 2. ทดสอบการฝากเงินที่มีค่าติดลบ
-    #     # Initial balance check
-    #     initial_balance = self.tony_savings.balance
+    def test_negative_deposit(self): # 2. ทดสอบการฝากเงินที่มีค่าติดลบ
+        # Initial balance check
+        initial_balance = self.tony_savings.balance
         
-    #     # Try to deposit negative amount
-    #     deposit_amount = -5000
-    #     result = self.atm1.insert_card(self.tony_atm_card, "1234")
+        # Try to deposit negative amount
+        deposit_amount = -5000
+        result = self.atm1.insert_card(self.tony_atm_card, "1234")
         
-    #     # Verify card insertion
-    #     self.assertNotEqual(result, "Error", "Card verification should succeed")
+        # Verify card insertion
+        self.assertNotEqual(result, "Error", "Card verification should succeed")
         
-    #     # Perform deposit and verify it fails
-    #     deposit_result = self.atm1.deposit(result, deposit_amount)
-    #     self.assertEqual(deposit_result, "Error : amount must be greater than 0", 
-    #                     "Negative deposit should be rejected")
+        # Perform deposit and verify it fails
+        deposit_result = self.atm1.deposit(result, deposit_amount)
+        self.assertEqual(deposit_result, "Error : amount must be greater than 0", 
+                        "Negative deposit should be rejected")
         
-    #     # Verify balance remains unchanged
-    #     self.assertEqual(self.tony_savings.balance, initial_balance,
-    #                     "Balance should remain unchanged after failed deposit")
+        # Verify balance remains unchanged
+        self.assertEqual(self.tony_savings.balance, initial_balance,
+                        "Balance should remain unchanged after failed deposit")
         
-    #     # Verify no transaction was recorded
-    #     transactions = self.tony_savings.list_transaction()
-    #     original_transaction_count = len(transactions)
-    #     self.assertEqual(len(self.tony_savings.list_transaction()), original_transaction_count,
-    #                     "No new transaction should be recorded for failed deposit")
+        # Verify no transaction was recorded
+        transactions = self.tony_savings.transaction
+        original_transaction_count = len(transactions)
+        self.assertEqual(len(self.tony_savings.transaction), original_transaction_count,
+                        "No new transaction should be recorded for failed deposit")
 
 
     # def test_withdraw_over_limit(self): # 3. ทดสอบการถอนเงินเกินจำนวนที่กำหนด
