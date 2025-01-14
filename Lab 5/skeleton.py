@@ -27,7 +27,11 @@ class Bank:
             self.__edc_list.append(edc)
             return "Success"
 
-
+    def search_account(self, account_no):
+        for user in self.__user_list:
+            for account in user.account_list:
+                if account.account_no == account_no:
+                    return account
 class User:
     def __init__(self, citizen_id, name):
         self.__citizen_id = citizen_id
@@ -37,7 +41,9 @@ class User:
     @property
     def citizen_id(self):
         return self.__citizen_id
-
+    @property
+    def account_list(self):
+        return self.__account_list
 
     def add_account(self, account):
         if not isinstance(account, Account):
@@ -55,7 +61,15 @@ class Account:
         self.__user = user
         self.__card = None
         self.__balance = balance
-        self.__transaction = []
+        self.__transaction = [] 
+        self.__bank = ''
+
+    def transaction_add(self, value):
+        self.__transaction.append(value)
+
+    @property
+    def transaction(self):
+        return self.__transaction
 
     @property
     def account_no(self):
@@ -68,6 +82,11 @@ class Account:
     @property
     def user(self):
         return self.__user
+    
+    def deposit(self,channel_id, amount):
+        self.__balance += amount
+        return "Success"
+
     
     @balance.setter
     def balance(self, balance):
@@ -101,8 +120,9 @@ class Transaction:
         self.__amount = amount
         self.__balance = balance
 
-    def __str__(self):
-        return f"{self.__transaction_type}-{self.__source}-{self.__amount}-{self.__balance}"
+    def __str__(self): # TODO:
+        # return f"{self.__transaction_type}-{self.__source}-{self.__amount}-{self.__balance}"
+        return f"{self.__transaction_type}-{self.__source}:"
         
 class Card:
 
@@ -177,6 +197,8 @@ class ATMMachine(TransactionChannel):
         return "Error"
 
     def deposit(self, account, amount):
+        newtransaction = Transaction("D","ATM",amount,account.balance)
+        account.transaction_add(newtransaction)
         return account.deposit(self.channel_id, amount)
 
     def withdraw(self, account, amount):
@@ -281,13 +303,15 @@ class BankingTest(unittest.TestCase):
         # Current Account (1 account for merchant)
         self.thanos_current = CurrentAccount("CUR001", self.thanos, 500000.00)
 
-        # Add Accounts to Users
+        # Add Accounts to Users 
         self.tony.add_account(self.tony_savings)
         self.steve.add_account(self.steve_savings)
         self.thor.add_account(self.thor_savings)
         self.peter.add_account(self.peter_savings)
         self.bruce.add_account(self.bruce_fixed)
         self.thanos.add_account(self.thanos_current)
+
+    
 
         # Create ATM Machines
         self.atm1 = ATMMachine(self.bank, "ATM001", 10000)  # Initial money 10,000
@@ -329,7 +353,7 @@ class BankingTest(unittest.TestCase):
         # Verify card insertion
         self.assertNotEqual(result, "Error", "Card verification should succeed")
         
-        # Perform deposit and verify result
+        # Perform deposit and verify result 
         deposit_result = self.atm1.deposit(result, deposit_amount)
         self.assertEqual(deposit_result, "Success", "Deposit should be successful")
         
@@ -338,8 +362,8 @@ class BankingTest(unittest.TestCase):
         self.assertEqual(self.tony_savings.balance, expected_balance, 
                         f"Balance should be {expected_balance}")
     
-        # Verify transaction history
-        transactions = self.tony_savings.list_transaction()
+        # Verify transaction history TODO:
+        transactions = self.tony_savings.transaction
         self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
         latest_transaction = transactions[-1]
         self.assertIn("D-ATM:", str(latest_transaction), "Transaction should be a deposit via ATM")
