@@ -126,7 +126,6 @@ class Account:
         return "Success"
 
     def deposit(self,channel_id, amount):
-        # FIXME:
         from datetime import datetime, timedelta
         daycount = (datetime.now() - self.__deposit_date).days
         if daycount == 180:
@@ -138,6 +137,8 @@ class Account:
         return "Success"
 
     def withdraw(self, channel_id, amount):
+        if amount > self.balance:
+            return "Error: No initial deposit"
         if amount > self.__limit:
             return "Error"
         daycount = (datetime.now() - self.__deposit_date).days
@@ -161,7 +162,6 @@ class SavingAccount(Account):
     def __init__(self, account_no, user, balance):
         super().__init__(account_no, user, balance)
         self.interest = 0.005
-# FIXME:
 class FixedAccount(Account):
     def __init__(self, account_no, user, period,balance=0):
         super().__init__(account_no, user, balance)
@@ -596,7 +596,6 @@ class BankingTest(unittest.TestCase):
         self.assertGreater(len(interest_transaction), 0, 
                         "Interest transaction should exist")
         
-        # FIXME:
         # Verify reduced interest rate (should be around 1.25% for 6 months)
         # Base rate is 2.5% per year, so 6 months should be approximately half
         expected_interest = initial_deposit * 0.0125  # Approximately half of 2.5%
@@ -604,23 +603,23 @@ class BankingTest(unittest.TestCase):
         self.assertAlmostEqual(actual_interest, expected_interest, delta=1, 
                             msg="Interest should be calculated at reduced rate")
 
-    # def test_fixed_withdraw_without_deposit(self): # 9. ทดสอบการถอนเงินโดยไม่มีการฝากเงินเริ่มต้น
-    #     """Test withdrawal attempt without initial deposit"""
-    #     # Create new fixed account without deposit
-    #     fixed_account = FixedAccount("FIX004", self.tony, 12)
+    def test_fixed_withdraw_without_deposit(self): # 9. ทดสอบการถอนเงินโดยไม่มีการฝากเงินเริ่มต้น
+        """Test withdrawal attempt without initial deposit"""
+        # Create new fixed account without deposit
+        fixed_account = FixedAccount("FIX004", self.tony, 12)
         
-    #     # Try to withdraw
-    #     withdraw_amount = 1000
-    #     result = fixed_account.withdraw("COUNTER:001", withdraw_amount)
+        # Try to withdraw
+        withdraw_amount = 1000
+        result = fixed_account.withdraw("COUNTER:001", withdraw_amount)
         
-    #     # Verify withdrawal is rejected
-    #     self.assertEqual(result, "Error: No initial deposit", 
-    #                     "Withdrawal without initial deposit should be rejected")
+        # Verify withdrawal is rejected
+        self.assertEqual(result, "Error: No initial deposit", 
+                        "Withdrawal without initial deposit should be rejected")
         
-    #     # Verify no transactions recorded
-    #     transactions = fixed_account.list_transaction()
-    #     self.assertEqual(len(transactions), 0, 
-    #                     "No transactions should be recorded")
+        # Verify no transactions recorded
+        transactions = fixed_account.list_transaction()
+        self.assertEqual(len(transactions), 0, 
+                        "No transactions should be recorded")
 
     # def test_fixed_multiple_deposits(self): # 10. ทดสอบการฝากเงินหลายครั้งในบัญชีเงินฝาก
     #     """Test multiple deposits to fixed account"""
