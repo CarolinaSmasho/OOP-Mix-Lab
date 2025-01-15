@@ -1,5 +1,5 @@
 import unittest
-
+from datetime import datetime, timedelta
 class Bank:
     def __init__(self):
         self.__user_list = []
@@ -66,7 +66,12 @@ class Account:
         self.__transaction = []
         self.__limit= 50000
         self.__interest = 0
+        self.__period=0
+        self.__deposit_date= datetime.now()
 
+    @property
+    def deposit_date(self):
+        return self.__deposit_date
     @property
     def interest(self):
         return self.__interest
@@ -82,7 +87,10 @@ class Account:
     @property
     def user(self):
         return self.__user
-    
+    @deposit_date.setter
+    def deposit_date(self, date):
+        self.__deposit_date = date
+
     @interest.setter
     def interest(self, interest):
         self.__interest = interest
@@ -95,6 +103,13 @@ class Account:
     def card(self):
         return self.__card
 
+    @property 
+    def period(self):
+        return self.__period
+
+    @period.setter
+    def period(self, value):
+        self.__period = value
     def list_transaction(self):
         return self.__transaction
 
@@ -111,6 +126,12 @@ class Account:
         return "Success"
 
     def deposit(self,channel_id, amount):
+        # FIXME:
+        from datetime import datetime, timedelta
+        daycount = (datetime.now() - self.__deposit_date).days
+        if daycount == 180:
+            self.interest = self.interest/2
+            self.calculate_interest(self.period)
         self.__balance += amount
         newtransaction = Transaction("D",channel_id,amount,self.balance)
         self.transaction_add(newtransaction)
@@ -119,6 +140,10 @@ class Account:
     def withdraw(self, channel_id, amount):
         if amount > self.__limit:
             return "Error"
+        daycount = (datetime.now() - self.__deposit_date).days
+        if daycount == 180:
+            self.interest = self.interest/2
+            self.calculate_interest(self.period)
         self.__balance -= amount
         newtransaction = Transaction("W",channel_id,amount,self.balance)
         self.transaction_add(newtransaction)
@@ -140,7 +165,8 @@ class SavingAccount(Account):
 class FixedAccount(Account):
     def __init__(self, account_no, user, period,balance=0):
         super().__init__(account_no, user, balance)
-        self.__period = period
+        self.period = period
+        self.interest = 0.025
 class CurrentAccount(Account):
     pass
 class Transaction:
@@ -555,7 +581,7 @@ class BankingTest(unittest.TestCase):
         
         # Simulate time passing (6 months)
         # Mock the deposit_date to be 6 months ago
-        fixed_account._FixedAccount__deposit_date = datetime.now() - timedelta(days=180)
+        fixed_account.deposit_date = datetime.now() - timedelta(days=180)
         
         # Try to withdraw
         withdraw_amount = 50000
@@ -570,6 +596,7 @@ class BankingTest(unittest.TestCase):
         self.assertGreater(len(interest_transaction), 0, 
                         "Interest transaction should exist")
         
+        # FIXME:
         # Verify reduced interest rate (should be around 1.25% for 6 months)
         # Base rate is 2.5% per year, so 6 months should be approximately half
         expected_interest = initial_deposit * 0.0125  # Approximately half of 2.5%
