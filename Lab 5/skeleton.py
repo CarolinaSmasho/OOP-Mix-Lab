@@ -64,7 +64,11 @@ class Account:
         self.__transaction = [] 
         self.__bank = ''
         self.__limit = 50000
+        self.__interest = 0
 
+    def list_transaction(self):
+        return self.__transaction
+    
     def transaction_add(self, value):
         self.__transaction.append(value)
     @property
@@ -89,17 +93,25 @@ class Account:
     def deposit(self,channel_id, amount):
         self.__balance += amount
         return "Success"
-    # TODO: withdraw
+    
     def withdraw(self, chnnel_id, amount):
         self.__balance -= amount
         return "Success"
     @balance.setter
     def balance(self, balance):
         self.__balance = balance
+    @property
+    def interest(self):
+        return self.__interest
+    
+    @interest.setter
+    def interest(self, interst):
+        self.__interest = interst
 
     @property
     def card(self):
         return self.__card
+
 
     def add_card(self, card):
         if not isinstance(card, Card):
@@ -110,8 +122,19 @@ class Account:
         self.__card = card  
         return "Success"
 
+    def calculate_interest(self, year):
+        current_balance = self.balance
+        interest = (current_balance)*(self.interest)
+        self.balance += interest
+        # TODO:
+        newtransaction = Transaction("I",'',interest,self.balance)
+        self.transaction_add(newtransaction)
+        return (current_balance)*(self.interest)
+
 class SavingAccount(Account):
-    pass
+    def __init__(self, account_no, user, balance):
+        super().__init__(account_no, user, balance)
+        self.interest = 0.005
 class FixedAccount(Account):
     def __init__(self, account_no, user, period,balance):
         super().__init__(account_no, user, balance)
@@ -125,13 +148,14 @@ class Transaction:
         self.__amount = amount
         self.__balance = balance
 
-    # TODO: จะหา atm_no อย่างไร
     def __str__(self): 
         # return f"{self.__transaction_type}-{self.__source}-{self.__amount}-{self.__balance}"
         # D-ATM:1002-1000-2000 แปลวารายการฝากที่เครื่อง ATM หมายเลข 1002 จำนวนเงิน 1000 บาท และหลังทำรายการมีเงินคงเหลือ 2000 บาท
         if isinstance (self.__source, ATMMachine):
-            return f"{self.__transaction_type}-ATM:" # TODO: ต้องแก้ source
-            
+            return f"{self.__transaction_type}-ATM:" 
+        else:
+            return f"{self.__transaction_type}-"
+    
         
 class Card:
 
@@ -212,7 +236,7 @@ class ATMMachine(TransactionChannel):
         account.transaction_add(newtransaction)
         return account.deposit(self.channel_id, amount)
 
-    def withdraw(self, account, amount): # TODO:
+    def withdraw(self, account, amount):
         if amount <= 0  or amount > account.limit:
             return "Error"
         newtransaction = Transaction("W",self,amount,account.balance)
@@ -421,7 +445,6 @@ class BankingTest(unittest.TestCase):
         # Verify card insertion
         self.assertNotEqual(result, "Error", "Card verification should succeed")
         
-        # TODO: withdraw
         # Perform withdrawal and verify result
         withdraw_result = self.atm1.withdraw(result, withdraw_amount)
         self.assertIn("Error", withdraw_result, 
@@ -431,30 +454,31 @@ class BankingTest(unittest.TestCase):
         self.assertEqual(self.steve_savings.balance, initial_balance, 
                         "Balance should remain unchanged after failed withdrawal")
 
-    # def test_calculate_interest(self): # 4. ทดสอบการคำนวณดอกเบี้ยบัญชีออมทรัพย์
-    #         """Test interest calculation"""
-    #         # Initial balance check
-    #         initial_balance = self.thor_savings.balance
+    def test_calculate_interest(self): # 4. ทดสอบการคำนวณดอกเบี้ยบัญชีออมทรัพย์
+            # """Test interest calculation"""
+            # Initial balance check
+            initial_balance = self.thor_savings.balance
             
-    #         # Calculate interest
-    #         interest = self.thor_savings.calculate_interest(1)  # 1 year
+            # Calculate interest
+            interest = self.thor_savings.calculate_interest(1)  # 1 year
             
-    #         # Verify interest calculation
-    #         expected_interest = initial_balance * 0.005  # 0.5% interest rate
-    #         self.assertEqual(interest, expected_interest, 
-    #                         "Interest calculation should be correct")
+            # Verify interest calculation
+            expected_interest = initial_balance * 0.005  # 0.5% interest rate
+            self.assertEqual(interest, expected_interest, 
+                            "Interest calculation should be correct")
             
-    #         # Verify new balance
-    #         expected_balance = initial_balance + expected_interest
-    #         self.assertEqual(self.thor_savings.balance, expected_balance, 
-    #                         "Balance should include interest")
+            # Verify new balance
+            expected_balance = initial_balance + expected_interest
+            self.assertEqual(self.thor_savings.balance, expected_balance, 
+                            "Balance should include interest")
             
-    #         # Verify transaction history
-    #         transactions = self.thor_savings.list_transaction()
-    #         self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
-    #         latest_transaction = transactions[-1]
-    #         self.assertIn("I-", str(latest_transaction), 
-    #                     "Transaction should be an interest addition")
+            # TODO: create transaction in calculate_interest
+            # Verify transaction history
+            transactions = self.thor_savings.list_transaction()
+            self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
+            latest_transaction = transactions[-1]
+            self.assertIn("I-", str(latest_transaction), 
+                        "Transaction should be an interest addition")
 
     # def test_counter_deposit(self): # 5. ทดสอบการฝากเงินผ่านเคาน์เตอร์
     #     """Test deposit through bank counter"""

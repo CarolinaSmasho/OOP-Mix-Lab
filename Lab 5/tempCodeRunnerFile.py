@@ -1,1 +1,1 @@
-Error : amount must be greater than 0
+            interest = self.thor_savings.calculate_interest(1)  # 1 year
