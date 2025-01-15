@@ -6,6 +6,10 @@ class Bank:
         self.__atm_list = []
         self.__edc_list = []
 
+    @property
+    def user_list(self):
+        return self.__user_list
+
     def add_user(self,user) -> str:
         if not isinstance(user, User):
             return "Error"
@@ -33,6 +37,11 @@ class Bank:
                 if account.account_no == account_no:
                     return account
 
+    def search_edc_machine(self, edc_no):
+        for edc in self.__edc_list:
+            if edc.edc_no == edc_no:
+                return edc
+        return "Not Found EDC"
 class User:
     def __init__(self, citizen_id, name):
         self.__citizen_id = citizen_id
@@ -332,11 +341,24 @@ class EDCMachine(TransactionChannel):
             self.__current_card = card
             return "Success"
         return "Error: Invalid card or PIN"
-        
+    
     def pay(self, debit_card, amount):
-        pass
-
-
+        self.__merchant_account.balance += amount
+        for user in self.bank.user_list:
+            for account in user.account_list:
+                if isinstance(account, SavingAccount) and account.card == debit_card:
+                    account.balance -= amount
+                    self.calculate_cashback(debit_card, amount)
+                    return "Success"
+            
+        return "Error"
+        
+    def calculate_cashback(self, card, amount):
+        if amount > 1000:
+            cashback = amount * 0.01
+            card.balance += cashback
+            return cashback
+        return 0
 
 
 
@@ -779,37 +801,37 @@ class BankingTest(unittest.TestCase):
         self.assertEqual(self.thanos_current.balance, current_balance,
                         "Balance should remain unchanged after failed withdrawal")
 
-    # def test_current_account_merchant_payment(self): # 15. ทดสอบการชำระเงินผ่านบัญชีกระแสรายวันผ่าน EDC
-    #     """Test merchant payment processing through EDC"""
-    #     # Get EDC machine
-    #     edc = self.bank.search_edc_machine("EDC001")
-    #     self.assertIsNotNone(edc, "EDC machine should exist")
+    def test_current_account_merchant_payment(self): # 15. ทดสอบการชำระเงินผ่านบัญชีกระแสรายวันผ่าน EDC
+        """Test merchant payment processing through EDC"""
+        # Get EDC machine
+        edc = self.bank.search_edc_machine("EDC001")
+        self.assertIsNotNone(edc, "EDC machine should exist")
         
-    #     # Initial balances
-    #     merchant_initial = self.thanos_current.balance
-    #     customer_initial = self.steve_savings.balance
-    #     payment_amount = 1000
+        # Initial balances
+        merchant_initial = self.thanos_current.balance
+        customer_initial = self.steve_savings.balance
+        payment_amount = 1000
         
-    #     # Process payment
-    #     # First verify card
-    #     card_verification = edc.swipe_card(self.steve_shopping_card, "5678")
-    #     self.assertEqual(card_verification, "Success", "Card verification should succeed")
+        # Process payment
+        # First verify card
+        card_verification = edc.swipe_card(self.steve_shopping_card, "5678")
+        self.assertEqual(card_verification, "Success", "Card verification should succeed")
         
-    #     # Then make payment
-    #     payment_result = edc.pay(self.steve_shopping_card, payment_amount)
+        # Then make payment
+        payment_result = edc.pay(self.steve_shopping_card, payment_amount)
         
-    #     # Verify payment success
-    #     self.assertEqual(payment_result, "Success", "Payment should be successful")
+        # Verify payment success
+        self.assertEqual(payment_result, "Success", "Payment should be successful")
         
-    #     # Check merchant account balance
-    #     expected_merchant_balance = merchant_initial + payment_amount
-    #     self.assertEqual(self.thanos_current.balance, expected_merchant_balance,
-    #                     "Merchant balance should increase by payment amount")
+        # Check merchant account balance
+        expected_merchant_balance = merchant_initial + payment_amount
+        self.assertEqual(self.thanos_current.balance, expected_merchant_balance,
+                        "Merchant balance should increase by payment amount")
         
-    #     # Check customer account balance
-    #     expected_customer_balance = customer_initial - payment_amount + edc.calculate_cashback(self.steve_shopping_card, payment_amount)
-    #     self.assertEqual(self.steve_savings.balance, expected_customer_balance,
-    #                     "Customer balance should decrease by payment amount")
+        # Check customer account balance
+        expected_customer_balance = customer_initial - payment_amount + edc.calculate_cashback(self.steve_shopping_card, payment_amount)
+        self.assertEqual(self.steve_savings.balance, expected_customer_balance,
+                        "Customer balance should decrease by payment amount")
 
 
     # def test_debit_card_annual_fee(self): # 16. ทดสอบการหักค่าธรรมเนียมประจำปีสำหรับบัตร debit
