@@ -63,10 +63,13 @@ class Account:
         self.__balance = balance
         self.__transaction = [] 
         self.__bank = ''
+        self.__limit = 50000
 
     def transaction_add(self, value):
         self.__transaction.append(value)
-
+    @property
+    def limit(self):
+        return self.__limit
     @property
     def transaction(self):
         return self.__transaction
@@ -86,8 +89,10 @@ class Account:
     def deposit(self,channel_id, amount):
         self.__balance += amount
         return "Success"
-
-    
+    # TODO: withdraw
+    def withdraw(self, chnnel_id, amount):
+        self.__balance -= amount
+        return "Success"
     @balance.setter
     def balance(self, balance):
         self.__balance = balance
@@ -120,9 +125,13 @@ class Transaction:
         self.__amount = amount
         self.__balance = balance
 
+    # TODO: จะหา atm_no อย่างไร
     def __str__(self): 
         # return f"{self.__transaction_type}-{self.__source}-{self.__amount}-{self.__balance}"
-        return f"{self.__transaction_type}-{self.__source}:"
+        # D-ATM:1002-1000-2000 แปลวารายการฝากที่เครื่อง ATM หมายเลข 1002 จำนวนเงิน 1000 บาท และหลังทำรายการมีเงินคงเหลือ 2000 บาท
+        if isinstance (self.__source, ATMMachine):
+            return f"{self.__transaction_type}-ATM:" # TODO: ต้องแก้ source
+            
         
 class Card:
 
@@ -199,11 +208,15 @@ class ATMMachine(TransactionChannel):
     def deposit(self, account, amount):
         if amount <= 0 :
             return "Error : amount must be greater than 0"
-        newtransaction = Transaction("D","ATM",amount,account.balance)
+        newtransaction = Transaction("D",self,amount,account.balance)
         account.transaction_add(newtransaction)
         return account.deposit(self.channel_id, amount)
 
-    def withdraw(self, account, amount):
+    def withdraw(self, account, amount): # TODO:
+        if amount <= 0  or amount > account.limit:
+            return "Error"
+        newtransaction = Transaction("W",self,amount,account.balance)
+        account.transaction_add(newtransaction)
         return account.withdraw(self.channel_id, amount)
 
     def transfer(self, account, target_account, amount):
@@ -397,25 +410,26 @@ class BankingTest(unittest.TestCase):
                         "No new transaction should be recorded for failed deposit")
 
 
-    # def test_withdraw_over_limit(self): # 3. ทดสอบการถอนเงินเกินจำนวนที่กำหนด
-    #     # Initial balance check
-    #     initial_balance = self.steve_savings.balance
+    def test_withdraw_over_limit(self): # 3. ทดสอบการถอนเงินเกินจำนวนที่กำหนด
+        # Initial balance check
+        initial_balance = self.steve_savings.balance
         
-    #     # Attempt withdrawal
-    #     withdraw_amount = 60000  # Over 50,000 limit
-    #     result = self.atm1.insert_card(self.steve_shopping_card, "5678")
+        # Attempt withdrawal
+        withdraw_amount = 60000  # Over 50,000 limit
+        result = self.atm1.insert_card(self.steve_shopping_card, "5678")
         
-    #     # Verify card insertion
-    #     self.assertNotEqual(result, "Error", "Card verification should succeed")
+        # Verify card insertion
+        self.assertNotEqual(result, "Error", "Card verification should succeed")
         
-    #     # Perform withdrawal and verify result
-    #     withdraw_result = self.atm1.withdraw(result, withdraw_amount)
-    #     self.assertIn("Error", withdraw_result, 
-    #                  "Should return error for withdrawal over limit")
+        # TODO: withdraw
+        # Perform withdrawal and verify result
+        withdraw_result = self.atm1.withdraw(result, withdraw_amount)
+        self.assertIn("Error", withdraw_result, 
+                     "Should return error for withdrawal over limit")
         
-    #     # Verify balance unchanged
-    #     self.assertEqual(self.steve_savings.balance, initial_balance, 
-    #                     "Balance should remain unchanged after failed withdrawal")
+        # Verify balance unchanged
+        self.assertEqual(self.steve_savings.balance, initial_balance, 
+                        "Balance should remain unchanged after failed withdrawal")
 
     # def test_calculate_interest(self): # 4. ทดสอบการคำนวณดอกเบี้ยบัญชีออมทรัพย์
     #         """Test interest calculation"""
