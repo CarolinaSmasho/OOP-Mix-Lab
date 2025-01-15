@@ -211,7 +211,15 @@ class Card:
         self.__card_no = card_no
         self.__account_no = account_no  
         self.__pin = pin
-
+        self.__annual_fee = 0
+    
+    @property
+    def annual_fee (self):
+        return self.__annual_fee
+    @annual_fee.setter
+    def annual_fee (self, value):
+        self.__annual_fee = value
+    
     @property
     def card_no(self):
         return self.__card_no
@@ -233,9 +241,13 @@ class Card:
         return self.validate_pin(input_pin)
 
 class ATMCard(Card):
-    pass
+    def __init__(self, card_no, account_no, pin):
+        super().__init__(card_no, account_no, pin)
+        self.annual_fee = 150
 class DebitCard(Card):
-    pass
+    def __init__(self, card_no, account_no, pin):
+        super().__init__(card_no, account_no, pin)
+        self.annual_fee = 300
 class TravelDebitCard(DebitCard):
     pass
 class ShoppingDebitCard(DebitCard):
@@ -834,37 +846,37 @@ class BankingTest(unittest.TestCase):
                         "Customer balance should decrease by payment amount")
 
 
-    # def test_debit_card_annual_fee(self): # 16. ทดสอบการหักค่าธรรมเนียมประจำปีสำหรับบัตร debit
-    #     """Test annual fee deduction for cards"""
-    #     # Initial setup - using Steve's shopping debit card account
-    #     initial_balance = self.steve_savings.balance
-    #     annual_fee = self.steve_savings.card.annual_fee
+    def test_debit_card_annual_fee(self): # 16. ทดสอบการหักค่าธรรมเนียมประจำปีสำหรับบัตร debit
+        """Test annual fee deduction for cards"""
+        # Initial setup - using Steve's shopping debit card account
+        initial_balance = self.steve_savings.balance
+        annual_fee = self.steve_savings.card.annual_fee
     
-    #     # Create a method to deduct annual fee
-    #     def deduct_annual_fee(card, account):
-    #         """Helper method to simulate annual fee deduction"""
-    #         if isinstance(card, Card):
-    #             result = account.withdraw("SYSTEM", annual_fee)
-    #             return result
+        # Create a method to deduct annual fee
+        def deduct_annual_fee(card, account):
+            """Helper method to simulate annual fee deduction"""
+            if isinstance(card, Card):
+                result = account.withdraw("SYSTEM", annual_fee)
+                return result
         
-    #     # Test fee deduction
-    #     result = deduct_annual_fee(self.steve_shopping_card, self.steve_savings)
+        # Test fee deduction
+        result = deduct_annual_fee(self.steve_shopping_card, self.steve_savings)
         
-    #     # Verify deduction success
-    #     self.assertEqual(result, "Success", "Annual fee deduction should be successful")
+        # Verify deduction success
+        self.assertEqual(result, "Success", "Annual fee deduction should be successful")
         
-    #     # Check if balance is reduced by annual fee
-    #     expected_balance = initial_balance - annual_fee
-    #     self.assertEqual(self.steve_savings.balance, expected_balance,
-    #                     f"Balance should be reduced by {annual_fee} baht")
+        # Check if balance is reduced by annual fee
+        expected_balance = initial_balance - annual_fee
+        self.assertEqual(self.steve_savings.balance, expected_balance,
+                        f"Balance should be reduced by {annual_fee} baht")
         
-    #     # Verify transaction record
-    #     transactions = self.steve_savings.list_transaction()
-    #     latest_transaction = transactions[-1]
-    #     self.assertIn("W-SYSTEM", str(latest_transaction),
-    #                 "Transaction should be recorded as system withdrawal")
-    #     self.assertIn(str(annual_fee), str(latest_transaction),
-    #                 "Transaction amount should match annual fee")
+        # Verify transaction record
+        transactions = self.steve_savings.list_transaction()
+        latest_transaction = transactions[-1]
+        self.assertIn("W-SYSTEM", str(latest_transaction),
+                    "Transaction should be recorded as system withdrawal")
+        self.assertIn(str(annual_fee), str(latest_transaction),
+                    "Transaction amount should match annual fee")
 
     # def test_atm_card_annual_fee(self): # 17. ทดสอบการหักค่าธรรมเนียมประจำปีสำหรับบัตร ATM
     #     """Test annual fee deduction for cards"""
