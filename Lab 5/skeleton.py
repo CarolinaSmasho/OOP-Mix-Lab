@@ -64,11 +64,17 @@ class Account:
         self.__card = None
         self.__balance = balance
         self.__transaction = []
-        self.__limit= 50000
+        self.__limit= 0
         self.__interest = 0
         self.__period=0
         self.__deposit_date= datetime.now()
 
+    @property
+    def limit(self):
+        return self.__limit
+    @limit.setter
+    def limit(self, value):
+        self.__limit = value
     @property
     def deposit_date(self):
         return self.__deposit_date
@@ -94,6 +100,7 @@ class Account:
     @interest.setter
     def interest(self, interest):
         self.__interest = interest
+
 
     @balance.setter
     def balance(self, balance):
@@ -139,12 +146,19 @@ class Account:
     def withdraw(self, channel_id, amount):
         if amount > self.balance:
             return "Error: No initial deposit"
-        if amount > self.__limit:
+        if amount > self.limit and self.limit != 0 :
             return "Error"
         daycount = (datetime.now() - self.__deposit_date).days
-        if daycount == 180:
+        if daycount >= 365:
+            self.calculate_interest(self.period)
+        elif daycount >= 180:
             self.interest = self.interest/2
             self.calculate_interest(self.period)
+
+
+
+
+
         self.__balance -= amount
         newtransaction = Transaction("W",channel_id,amount,self.balance)
         self.transaction_add(newtransaction)
@@ -162,6 +176,7 @@ class SavingAccount(Account):
     def __init__(self, account_no, user, balance):
         super().__init__(account_no, user, balance)
         self.interest = 0.005
+        self.limit = 50000
 class FixedAccount(Account):
     def __init__(self, account_no, user, period,balance=0):
         super().__init__(account_no, user, balance)
@@ -621,67 +636,67 @@ class BankingTest(unittest.TestCase):
         self.assertEqual(len(transactions), 0, 
                         "No transactions should be recorded")
 
-    # def test_fixed_multiple_deposits(self): # 10. ทดสอบการฝากเงินหลายครั้งในบัญชีเงินฝาก
-    #     """Test multiple deposits to fixed account"""
-    #     # Create new fixed account
-    #     fixed_account = FixedAccount("FIX005", self.tony, 12)
+    def test_fixed_multiple_deposits(self): # 10. ทดสอบการฝากเงินหลายครั้งในบัญชีเงินฝาก
+        """Test multiple deposits to fixed account"""
+        # Create new fixed account
+        fixed_account = FixedAccount("FIX005", self.tony, 12)
         
-    #     # First deposit
-    #     first_deposit = 100000
-    #     result1 = fixed_account.deposit("COUNTER:001", first_deposit)
-    #     self.assertEqual(result1, "Success", "First deposit should be successful")
+        # First deposit
+        first_deposit = 100000
+        result1 = fixed_account.deposit("COUNTER:001", first_deposit)
+        self.assertEqual(result1, "Success", "First deposit should be successful")
         
-    #     # Try second deposit
-    #     second_deposit = 50000
-    #     result2 = fixed_account.deposit("COUNTER:001", second_deposit)
-    #     self.assertEqual(result2, "Success", "Second deposit should be successful")
+        # Try second deposit
+        second_deposit = 50000
+        result2 = fixed_account.deposit("COUNTER:001", second_deposit)
+        self.assertEqual(result2, "Success", "Second deposit should be successful")
         
-    #     # Verify final balance includes both deposits
-    #     expected_balance = first_deposit + second_deposit
-    #     self.assertEqual(fixed_account.balance, expected_balance,
-    #                     f"Balance should be {expected_balance}")
+        # Verify final balance includes both deposits
+        expected_balance = first_deposit + second_deposit
+        self.assertEqual(fixed_account.balance, expected_balance,
+                        f"Balance should be {expected_balance}")
         
-    #     # Verify both transactions recorded
-    #     transactions = fixed_account.list_transaction()
-    #     self.assertEqual(len(transactions), 2,
-    #                     "Should have two deposit transactions")
+        # Verify both transactions recorded
+        transactions = fixed_account.list_transaction()
+        self.assertEqual(len(transactions), 2,
+                        "Should have two deposit transactions")
 
-    # def test_fixed_withdraw_at_maturity(self): # 11. ทดสอบการถอนเงินในวันครบกำหนด
-    #     """Test withdrawal at maturity period with full interest"""
-    #     from datetime import datetime, timedelta
+    def test_fixed_withdraw_at_maturity(self): # 11. ทดสอบการถอนเงินในวันครบกำหนด
+        """Test withdrawal at maturity period with full interest"""
+        from datetime import datetime, timedelta
         
-    #     # Initial deposit
-    #     initial_deposit = 100000
-    #     fixed_account = FixedAccount("FIX006", self.tony, 12)  # 12 months period
-    #     fixed_account.deposit("COUNTER:001", initial_deposit)
+        # Initial deposit
+        initial_deposit = 100000
+        fixed_account = FixedAccount("FIX006", self.tony, 12)  # 12 months period
+        fixed_account.deposit("COUNTER:001", initial_deposit)
         
-    #     # Simulate time passing (12 months)
-    #     # Mock the deposit_date to be 12 months ago
-    #     fixed_account._FixedAccount__deposit_date = datetime.now() - timedelta(days=365)
+        # Simulate time passing (12 months)
+        # Mock the deposit_date to be 12 months ago
+        fixed_account.deposit_date = datetime.now() - timedelta(days=365)
         
-    #     # Try to withdraw
-    #     withdraw_amount = initial_deposit
-    #     result = fixed_account.withdraw("COUNTER:001", withdraw_amount)
+        # Try to withdraw
+        withdraw_amount = initial_deposit
+        result = fixed_account.withdraw("COUNTER:001", withdraw_amount)
         
-    #     # Verify withdrawal success
-    #     self.assertEqual(result, "Success", "Withdrawal should be successful")
+        # Verify withdrawal success
+        self.assertEqual(result, "Success", "Withdrawal should be successful")
         
-    #     # Check if full interest was applied
-    #     transactions = fixed_account.list_transaction()
-    #     interest_transaction = [t for t in transactions if str(t).startswith("I-")]
-    #     self.assertGreater(len(interest_transaction), 0, 
-    #                     "Interest transaction should exist")
+        # Check if full interest was applied
+        transactions = fixed_account.list_transaction()
+        interest_transaction = [t for t in transactions if str(t).startswith("I-")]
+        self.assertGreater(len(interest_transaction), 0, 
+                        "Interest transaction should exist")
         
-    #     # Verify full interest rate (2.5% for 12 months)
-    #     expected_interest = initial_deposit * 0.025  # Full 2.5% annual rate
-    #     actual_interest = float(str(interest_transaction[-1]).split("-")[2])
-    #     self.assertAlmostEqual(actual_interest, expected_interest, delta=1, 
-    #                         msg="Interest should be calculated at full rate")
+        # Verify full interest rate (2.5% for 12 months)
+        expected_interest = initial_deposit * 0.025  # Full 2.5% annual rate
+        actual_interest = float(str(interest_transaction[-1]).split("-")[2])
+        self.assertAlmostEqual(actual_interest, expected_interest, delta=1, 
+                            msg="Interest should be calculated at full rate")
         
-    #     # Verify final balance after interest and withdrawal
-    #     expected_final_balance = initial_deposit + expected_interest - withdraw_amount
-    #     self.assertAlmostEqual(fixed_account.balance, expected_final_balance, delta=1,
-    #                         msg="Final balance should reflect interest and withdrawal")
+        # Verify final balance after interest and withdrawal
+        expected_final_balance = initial_deposit + expected_interest - withdraw_amount
+        self.assertAlmostEqual(fixed_account.balance, expected_final_balance, delta=1,
+                            msg="Final balance should reflect interest and withdrawal")
 
     # def test_current_account_basic_deposit(self): # 12. ทดสอบการฝากเงินในบัญชีกระแสรายวัน
     #     """Test basic deposit functionality for current account"""
