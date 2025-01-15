@@ -355,6 +355,8 @@ class EDCMachine(TransactionChannel):
         return "Error: Invalid card or PIN"
     
     def pay(self, debit_card, amount):
+        if not isinstance(debit_card, DebitCard):
+            return "Error: No card inserted"
         self.__merchant_account.balance += amount
         for user in self.bank.user_list:
             for account in user.account_list:
@@ -878,96 +880,96 @@ class BankingTest(unittest.TestCase):
         self.assertIn(str(annual_fee), str(latest_transaction),
                     "Transaction amount should match annual fee")
 
-    # def test_atm_card_annual_fee(self): # 17. ทดสอบการหักค่าธรรมเนียมประจำปีสำหรับบัตร ATM
-    #     """Test annual fee deduction for cards"""
-    #     # Initial setup - using Steve's shopping debit card account
-    #     initial_balance = self.tony_savings.balance
-    #     annual_fee = self.tony_atm_card.annual_fee
+    def test_atm_card_annual_fee(self): # 17. ทดสอบการหักค่าธรรมเนียมประจำปีสำหรับบัตร ATM
+        """Test annual fee deduction for cards"""
+        # Initial setup - using Steve's shopping debit card account
+        initial_balance = self.tony_savings.balance
+        annual_fee = self.tony_atm_card.annual_fee
     
-    #     # Create a method to deduct annual fee
-    #     def deduct_annual_fee(card, account):
-    #         """Helper method to simulate annual fee deduction"""
-    #         if isinstance(card, Card):
-    #             result = account.withdraw("SYSTEM", annual_fee)
-    #             return result
+        # Create a method to deduct annual fee
+        def deduct_annual_fee(card, account):
+            """Helper method to simulate annual fee deduction"""
+            if isinstance(card, Card):
+                result = account.withdraw("SYSTEM", annual_fee)
+                return result
         
-    #     # Test fee deduction
-    #     result = deduct_annual_fee(self.tony_atm_card, self.tony_savings)
+        # Test fee deduction
+        result = deduct_annual_fee(self.tony_atm_card, self.tony_savings)
         
-    #     # Verify deduction success
-    #     self.assertEqual(result, "Success", "Annual fee deduction should be successful")
+        # Verify deduction success
+        self.assertEqual(result, "Success", "Annual fee deduction should be successful")
         
-    #     # Check if balance is reduced by annual fee
-    #     expected_balance = initial_balance - annual_fee
-    #     self.assertEqual(self.tony_savings.balance, expected_balance,
-    #                     f"Balance should be reduced by {annual_fee} baht")
+        # Check if balance is reduced by annual fee
+        expected_balance = initial_balance - annual_fee
+        self.assertEqual(self.tony_savings.balance, expected_balance,
+                        f"Balance should be reduced by {annual_fee} baht")
         
-    #     # Verify transaction record
-    #     transactions = self.tony_savings.list_transaction()
-    #     latest_transaction = transactions[-1]
-    #     self.assertIn("W-SYSTEM", str(latest_transaction),
-    #                 "Transaction should be recorded as system withdrawal")
-    #     self.assertIn(str(annual_fee), str(latest_transaction),
-    #                 "Transaction amount should match annual fee")
+        # Verify transaction record
+        transactions = self.tony_savings.list_transaction()
+        latest_transaction = transactions[-1]
+        self.assertIn("W-SYSTEM", str(latest_transaction),
+                    "Transaction should be recorded as system withdrawal")
+        self.assertIn(str(annual_fee), str(latest_transaction),
+                    "Transaction amount should match annual fee")
 
-    # def test_thor_account_merchant_payment(self): # 18. ทดสอบการชำระเงินผ่านบัญชีของ Thor ผ่าน EDC (ไม่มีเงินคืน)
-    #     """Test merchant payment through EDC for Thor's account (no cashback)"""
-    #     # Get EDC machine
-    #     edc = self.bank.search_edc_machine("EDC001")
-    #     self.assertIsNotNone(edc, "EDC machine should exist")
+    def test_thor_account_merchant_payment(self): # 18. ทดสอบการชำระเงินผ่านบัญชีของ Thor ผ่าน EDC (ไม่มีเงินคืน)
+        """Test merchant payment through EDC for Thor's account (no cashback)"""
+        # Get EDC machine
+        edc = self.bank.search_edc_machine("EDC001")
+        self.assertIsNotNone(edc, "EDC machine should exist")
         
-    #     # Initial balances
-    #     merchant_initial = self.thanos_current.balance
-    #     thor_initial = self.thor_savings.balance
-    #     payment_amount = 1000
+        # Initial balances
+        merchant_initial = self.thanos_current.balance
+        thor_initial = self.thor_savings.balance
+        payment_amount = 1000
         
-    #     # Process payment
-    #     # First verify card
-    #     card_verification = edc.swipe_card(self.thor_travel_card, "9012")
-    #     self.assertEqual(card_verification, "Success", "Card verification should succeed")
+        # Process payment
+        # First verify card
+        card_verification = edc.swipe_card(self.thor_travel_card, "9012")
+        self.assertEqual(card_verification, "Success", "Card verification should succeed")
         
-    #     # Then make payment
-    #     payment_result = edc.pay(self.thor_travel_card, payment_amount)
+        # Then make payment
+        payment_result = edc.pay(self.thor_travel_card, payment_amount)
         
-    #     # Verify payment success
-    #     self.assertEqual(payment_result, "Success", "Payment should be successful")
+        # Verify payment success
+        self.assertEqual(payment_result, "Success", "Payment should be successful")
         
-    #     # Check merchant account balance
-    #     expected_merchant_balance = merchant_initial + payment_amount
-    #     self.assertEqual(self.thanos_current.balance, expected_merchant_balance,
-    #                     "Merchant balance should increase by payment amount")
+        # Check merchant account balance
+        expected_merchant_balance = merchant_initial + payment_amount
+        self.assertEqual(self.thanos_current.balance, expected_merchant_balance,
+                        "Merchant balance should increase by payment amount")
         
-    #     # Check Thor's account balance - should not include cashback
-    #     expected_thor_balance = thor_initial - payment_amount
-    #     self.assertEqual(self.thor_savings.balance, expected_thor_balance,
-    #                     "Thor's balance should decrease by exact payment amount with no cashback")
+        # Check Thor's account balance - should not include cashback
+        expected_thor_balance = thor_initial - payment_amount
+        self.assertEqual(self.thor_savings.balance, expected_thor_balance,
+                        "Thor's balance should decrease by exact payment amount with no cashback")
         
-    # def test_tony_atm_card_merchant_payment(self): # 19. ทดสอบการชำระเงินผ่านบัตร ATM ของ Tony ผ่าน EDC
-    #     """Test that ATM card cannot be used for merchant payment through EDC"""
-    #     # Get EDC machine
-    #     edc = self.bank.search_edc_machine("EDC001")
-    #     self.assertIsNotNone(edc, "EDC machine should exist")
+    def test_tony_atm_card_merchant_payment(self): # 19. ทดสอบการชำระเงินผ่านบัตร ATM ของ Tony ผ่าน EDC
+        """Test that ATM card cannot be used for merchant payment through EDC"""
+        # Get EDC machine
+        edc = self.bank.search_edc_machine("EDC001")
+        self.assertIsNotNone(edc, "EDC machine should exist")
         
-    #     # Initial balances
-    #     merchant_initial = self.thanos_current.balance
-    #     tony_initial = self.tony_savings.balance
-    #     payment_amount = 1000
+        # Initial balances
+        merchant_initial = self.thanos_current.balance
+        tony_initial = self.tony_savings.balance
+        payment_amount = 1000
         
-    #     # Attempt to verify ATM card
-    #     card_verification = edc.swipe_card(self.tony_atm_card, "1234")
-    #     self.assertEqual(card_verification, "Error: Invalid card or PIN", 
-    #                     "ATM card verification should fail")
+        # Attempt to verify ATM card
+        card_verification = edc.swipe_card(self.tony_atm_card, "1234")
+        self.assertEqual(card_verification, "Error: Invalid card or PIN", 
+                        "ATM card verification should fail")
+        # FIXME: atmcard in edc
+        # Attempt payment even after failed verification
+        payment_result = edc.pay(self.tony_atm_card, payment_amount)
+        self.assertEqual(payment_result, "Error: No card inserted",
+                        "Payment with ATM card should fail")
         
-    #     # Attempt payment even after failed verification
-    #     payment_result = edc.pay(self.tony_atm_card, payment_amount)
-    #     self.assertEqual(payment_result, "Error: No card inserted",
-    #                     "Payment with ATM card should fail")
-        
-    #     # Verify no changes in account balances
-    #     self.assertEqual(self.thanos_current.balance, merchant_initial,
-    #                     "Merchant balance should remain unchanged")
-    #     self.assertEqual(self.tony_savings.balance, tony_initial,
-    #                     "Tony's balance should remain unchanged")
+        # Verify no changes in account balances
+        self.assertEqual(self.thanos_current.balance, merchant_initial,
+                        "Merchant balance should remain unchanged")
+        self.assertEqual(self.tony_savings.balance, tony_initial,
+                        "Tony's balance should remain unchanged")
     
 
 if __name__ == '__main__':
