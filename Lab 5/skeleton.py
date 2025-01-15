@@ -65,6 +65,11 @@ class Account:
         self.__balance = balance
         self.__transaction = []
         self.__limit= 50000
+        self.__interest = 0
+
+    @property
+    def interest(self):
+        return self.__interest
 
     @property
     def account_no(self):
@@ -78,6 +83,10 @@ class Account:
     def user(self):
         return self.__user
     
+    @interest.setter
+    def interest(self, interest):
+        self.__interest = interest
+
     @balance.setter
     def balance(self, balance):
         self.__balance = balance
@@ -115,8 +124,18 @@ class Account:
         self.transaction_add(newtransaction)
         return "Success"
 
+    def calculate_interest(self, year):
+        current_balance = self.balance
+        interest = (current_balance)*(self.interest)
+        self.balance += interest
+        newtransaction = Transaction("I",'',interest,self.balance)
+        self.transaction_add(newtransaction)
+        return (current_balance)*(self.interest)
+
 class SavingAccount(Account):
-    pass
+    def __init__(self, account_no, user, balance):
+        super().__init__(account_no, user, balance)
+        self.interest = 0.005
 class FixedAccount(Account):
     def __init__(self, account_no, user, period,balance):
         super().__init__(account_no, user, balance)
@@ -413,7 +432,6 @@ class BankingTest(unittest.TestCase):
         # Verify card insertion
         self.assertNotEqual(result, "Error", "Card verification should succeed")
         
-        # FIXME:
         # Perform withdrawal and verify result
         withdraw_result = self.atm1.withdraw(result, withdraw_amount)
         self.assertIn("Error", withdraw_result, 
@@ -423,30 +441,30 @@ class BankingTest(unittest.TestCase):
         self.assertEqual(self.steve_savings.balance, initial_balance, 
                         "Balance should remain unchanged after failed withdrawal")
 
-    # def test_calculate_interest(self): # 4. ทดสอบการคำนวณดอกเบี้ยบัญชีออมทรัพย์
-    #         """Test interest calculation"""
-    #         # Initial balance check
-    #         initial_balance = self.thor_savings.balance
+    def test_calculate_interest(self): # 4. ทดสอบการคำนวณดอกเบี้ยบัญชีออมทรัพย์
+            """Test interest calculation"""
+            # Initial balance check
+            initial_balance = self.thor_savings.balance
             
-    #         # Calculate interest
-    #         interest = self.thor_savings.calculate_interest(1)  # 1 year
+            # Calculate interest 
+            interest = self.thor_savings.calculate_interest(1)  # 1 year
             
-    #         # Verify interest calculation
-    #         expected_interest = initial_balance * 0.005  # 0.5% interest rate
-    #         self.assertEqual(interest, expected_interest, 
-    #                         "Interest calculation should be correct")
+            # Verify interest calculation
+            expected_interest = initial_balance * 0.005  # 0.5% interest rate
+            self.assertEqual(interest, expected_interest, 
+                            "Interest calculation should be correct")
             
-    #         # Verify new balance
-    #         expected_balance = initial_balance + expected_interest
-    #         self.assertEqual(self.thor_savings.balance, expected_balance, 
-    #                         "Balance should include interest")
+            # Verify new balance
+            expected_balance = initial_balance + expected_interest
+            self.assertEqual(self.thor_savings.balance, expected_balance, 
+                            "Balance should include interest")
             
-    #         # Verify transaction history
-    #         transactions = self.thor_savings.list_transaction()
-    #         self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
-    #         latest_transaction = transactions[-1]
-    #         self.assertIn("I-", str(latest_transaction), 
-    #                     "Transaction should be an interest addition")
+            # Verify transaction history
+            transactions = self.thor_savings.list_transaction()
+            self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
+            latest_transaction = transactions[-1]
+            self.assertIn("I-", str(latest_transaction), 
+                        "Transaction should be an interest addition")
 
     # def test_counter_deposit(self): # 5. ทดสอบการฝากเงินผ่านเคาน์เตอร์
     #     """Test deposit through bank counter"""
