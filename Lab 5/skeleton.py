@@ -27,6 +27,11 @@ class Bank:
             self.__edc_list.append(edc)
             return "Success"
 
+    def search_account(self, account_no):
+        for user in self.__user_list:
+            for account in user.account_list:
+                if account.account_no == account_no:
+                    return account
 
 class User:
     def __init__(self, citizen_id, name):
@@ -38,6 +43,9 @@ class User:
     def citizen_id(self):
         return self.__citizen_id
 
+    @property
+    def account_list(self):
+        return self.__account_list
 
     def add_account(self, account):
         if not isinstance(account, Account):
@@ -77,6 +85,12 @@ class Account:
     def card(self):
         return self.__card
 
+    def list_transaction(self):
+        return self.__transaction
+
+    def transaction_add(self, value):
+        self.__transaction.append(value)
+
     def add_card(self, card):
         if not isinstance(card, Card):
             return "Error"
@@ -84,6 +98,12 @@ class Account:
         if card.account_no != self.__account_no:
             return "Error: Card account number does not match"
         self.__card = card  
+        return "Success"
+
+    def deposit(self,channel_id, amount):
+        self.__balance += amount
+        newtransaction = Transaction("D",channel_id,amount,self.balance)
+        self.transaction_add(newtransaction)
         return "Success"
 
 class SavingAccount(Account):
@@ -177,6 +197,9 @@ class ATMMachine(TransactionChannel):
         return "Error"
 
     def deposit(self, account, amount):
+        # TODO:
+        if amount <= 0 :
+            return "Error : amount must be greater than 0"
         return account.deposit(self.channel_id, amount)
 
     def withdraw(self, account, amount):
@@ -338,6 +361,7 @@ class BankingTest(unittest.TestCase):
         self.assertEqual(self.tony_savings.balance, expected_balance, 
                         f"Balance should be {expected_balance}")
     
+        # TODO:
         # Verify transaction history
         transactions = self.tony_savings.list_transaction()
         self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
