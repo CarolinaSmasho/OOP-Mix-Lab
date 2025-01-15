@@ -126,7 +126,6 @@ class Account:
         current_balance = self.balance
         interest = (current_balance)*(self.interest)
         self.balance += interest
-        # TODO:
         newtransaction = Transaction("I",'',interest,self.balance)
         self.transaction_add(newtransaction)
         return (current_balance)*(self.interest)
@@ -136,7 +135,7 @@ class SavingAccount(Account):
         super().__init__(account_no, user, balance)
         self.interest = 0.005
 class FixedAccount(Account):
-    def __init__(self, account_no, user, period,balance):
+    def __init__(self, account_no, user, period,balance=0):
         super().__init__(account_no, user, balance)
         self.__period = period
 class CurrentAccount(Account):
@@ -263,7 +262,6 @@ class Counter(TransactionChannel):
         else:
             return False
 
-    # TODO:
     def deposit(self, account, amount, account_id, citizen_id):
         if self.verify_identity(account, account_id, citizen_id):
             newtransaction = Transaction("D",self,amount,account.balance)
@@ -504,63 +502,62 @@ class BankingTest(unittest.TestCase):
                         f"Balance should be {expected_balance}")
         
         # Verify transaction history
-        # TODO:
         transactions = self.tony_savings.list_transaction()
         self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
         latest_transaction = transactions[-1]
         self.assertIn("D-COUNTER:", str(latest_transaction), 
                     "Transaction should be a deposit via counter")
 
-    # def test_counter_deposit_wrong_citizen_id(self): # 6. ทดสอบการฝากเงินผ่านเคาน์เตอร์โดยใส่เลขบัตรประชาชนผิด
-    #     """Test deposit through bank counter with wrong citizen ID"""
-    #     # Initial balance check
-    #     initial_balance = self.tony_savings.balance
+    def test_counter_deposit_wrong_citizen_id(self): # 6. ทดสอบการฝากเงินผ่านเคาน์เตอร์โดยใส่เลขบัตรประชาชนผิด
+        """Test deposit through bank counter with wrong citizen ID"""
+        # Initial balance check
+        initial_balance = self.tony_savings.balance
         
-    #     # Deposit parameters with wrong citizen ID
-    #     deposit_amount = 5000
-    #     account_id = self.tony_savings.account_no
-    #     wrong_citizen_id = "9999999999999"
+        # Deposit parameters with wrong citizen ID
+        deposit_amount = 5000
+        account_id = self.tony_savings.account_no
+        wrong_citizen_id = "9999999999999"
         
-    #     # Perform deposit and verify it fails
-    #     deposit_result = self.counter.deposit(self.tony_savings, deposit_amount, account_id, wrong_citizen_id)
-    #     self.assertEqual(deposit_result, "Error: Invalid identity", 
-    #                     "Deposit with wrong citizen ID should be rejected")
+        # Perform deposit and verify it fails
+        deposit_result = self.counter.deposit(self.tony_savings, deposit_amount, account_id, wrong_citizen_id)
+        self.assertEqual(deposit_result, "Error: Invalid identity", 
+                        "Deposit with wrong citizen ID should be rejected")
         
-    #     # Verify balance remains unchanged
-    #     self.assertEqual(self.tony_savings.balance, initial_balance,
-    #                     "Balance should remain unchanged after failed deposit")
+        # Verify balance remains unchanged
+        self.assertEqual(self.tony_savings.balance, initial_balance,
+                        "Balance should remain unchanged after failed deposit")
         
-    #     # Verify no transaction was recorded
-    #     transactions = self.tony_savings.list_transaction()
-    #     original_transaction_count = len(transactions)
-    #     self.assertEqual(len(self.tony_savings.list_transaction()), original_transaction_count,
-    #                     "No new transaction should be recorded for failed deposit")
+        # Verify no transaction was recorded
+        transactions = self.tony_savings.list_transaction()
+        original_transaction_count = len(transactions)
+        self.assertEqual(len(self.tony_savings.list_transaction()), original_transaction_count,
+                        "No new transaction should be recorded for failed deposit")
                         
 
-    # def test_fixed_deposit_initial(self): # 7. ทดสอบการฝากเงินเริ่มต้นในบัญชีเงินฝากประจำ
-    #     """Test initial deposit to fixed account"""
-    #     # Create new fixed account
-    #     fixed_account = FixedAccount("FIX002", self.tony, 12)  # 12 months period
-    #     initial_balance = fixed_account.balance
+    def test_fixed_deposit_initial(self): # 7. ทดสอบการฝากเงินเริ่มต้นในบัญชีเงินฝากประจำ
+        """Test initial deposit to fixed account"""
+        # Create new fixed account
+        fixed_account = FixedAccount("FIX002", self.tony, 12)  # 12 months period
+        initial_balance = fixed_account.balance
         
-    #     # Perform initial deposit
-    #     deposit_amount = 100000
-    #     result = fixed_account.deposit("COUNTER:001", deposit_amount)
+        # Perform initial deposit
+        deposit_amount = 100000
+        result = self.counter.deposit(fixed_account, deposit_amount, fixed_account.account_no, self.tony.citizen_id)
         
-    #     # Verify deposit success
-    #     self.assertEqual(result, "Success", "Initial deposit should be successful")
+        # Verify deposit success
+        self.assertEqual(result, "Success", "Initial deposit should be successful")
         
-    #     # Verify new balance
-    #     expected_balance = initial_balance + deposit_amount
-    #     self.assertEqual(fixed_account.balance, expected_balance, 
-    #                     f"Balance should be {expected_balance}")
+        # Verify new balance
+        expected_balance = initial_balance + deposit_amount
+        self.assertEqual(fixed_account.balance, expected_balance, 
+                        f"Balance should be {expected_balance}")
         
-    #     # Verify transaction recorded
-    #     transactions = fixed_account.list_transaction()
-    #     self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
-    #     latest_transaction = transactions[-1]
-    #     self.assertIn("D-COUNTER:", str(latest_transaction), 
-    #                 "Transaction should be a deposit")
+        # Verify transaction recorded
+        transactions = fixed_account.list_transaction()
+        self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
+        latest_transaction = transactions[-1]
+        self.assertIn("D-COUNTER:", str(latest_transaction), 
+                    "Transaction should be a deposit")
 
     # def test_fixed_withdraw_before_maturity(self): # 8. ทดสอบการถอนเงินก่อนวันครบกำหนด 
     #     """Test withdrawal before maturity period with reduced interest"""
