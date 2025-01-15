@@ -153,6 +153,8 @@ class Transaction:
         # D-ATM:1002-1000-2000 แปลวารายการฝากที่เครื่อง ATM หมายเลข 1002 จำนวนเงิน 1000 บาท และหลังทำรายการมีเงินคงเหลือ 2000 บาท
         if isinstance (self.__source, ATMMachine):
             return f"{self.__transaction_type}-ATM:" 
+        elif isinstance(self.__source, Counter):
+            return f"{self.__transaction_type}-COUNTER:"
         else:
             return f"{self.__transaction_type}-"
     
@@ -261,8 +263,11 @@ class Counter(TransactionChannel):
         else:
             return False
 
+    # TODO:
     def deposit(self, account, amount, account_id, citizen_id):
         if self.verify_identity(account, account_id, citizen_id):
+            newtransaction = Transaction("D",self,amount,account.balance)
+            account.transaction_add(newtransaction)
             return account.deposit(self.channel_id, amount)
         return "Error: Invalid identity"
     
@@ -472,7 +477,6 @@ class BankingTest(unittest.TestCase):
             self.assertEqual(self.thor_savings.balance, expected_balance, 
                             "Balance should include interest")
             
-            # TODO: create transaction in calculate_interest
             # Verify transaction history
             transactions = self.thor_savings.list_transaction()
             self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
@@ -480,31 +484,32 @@ class BankingTest(unittest.TestCase):
             self.assertIn("I-", str(latest_transaction), 
                         "Transaction should be an interest addition")
 
-    # def test_counter_deposit(self): # 5. ทดสอบการฝากเงินผ่านเคาน์เตอร์
-    #     """Test deposit through bank counter"""
-    #     # Initial balance check
-    #     initial_balance = self.tony_savings.balance
+    def test_counter_deposit(self): # 5. ทดสอบการฝากเงินผ่านเคาน์เตอร์
+        """Test deposit through bank counter"""
+        # Initial balance check
+        initial_balance = self.tony_savings.balance
         
-    #     # Deposit parameters
-    #     deposit_amount = 5000
-    #     account_id = self.tony_savings.account_no
-    #     citizen_id = self.tony.citizen_id
+        # Deposit parameters
+        deposit_amount = 5000
+        account_id = self.tony_savings.account_no
+        citizen_id = self.tony.citizen_id
         
-    #     # Perform deposit and verify result
-    #     deposit_result = self.counter.deposit(self.tony_savings, deposit_amount, account_id, citizen_id)
-    #     self.assertEqual(deposit_result, "Success", "Counter deposit should be successful")
+        # Perform deposit and verify result
+        deposit_result = self.counter.deposit(self.tony_savings, deposit_amount, account_id, citizen_id)
+        self.assertEqual(deposit_result, "Success", "Counter deposit should be successful")
         
-    #     # Verify new balance
-    #     expected_balance = initial_balance + deposit_amount
-    #     self.assertEqual(self.tony_savings.balance, expected_balance,
-    #                     f"Balance should be {expected_balance}")
+        # Verify new balance
+        expected_balance = initial_balance + deposit_amount
+        self.assertEqual(self.tony_savings.balance, expected_balance,
+                        f"Balance should be {expected_balance}")
         
-    #     # Verify transaction history
-    #     transactions = self.tony_savings.list_transaction()
-    #     self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
-    #     latest_transaction = transactions[-1]
-    #     self.assertIn("D-COUNTER:", str(latest_transaction), 
-    #                 "Transaction should be a deposit via counter")
+        # Verify transaction history
+        # TODO:
+        transactions = self.tony_savings.list_transaction()
+        self.assertGreater(len(transactions), 0, "Transaction history should not be empty")
+        latest_transaction = transactions[-1]
+        self.assertIn("D-COUNTER:", str(latest_transaction), 
+                    "Transaction should be a deposit via counter")
 
     # def test_counter_deposit_wrong_citizen_id(self): # 6. ทดสอบการฝากเงินผ่านเคาน์เตอร์โดยใส่เลขบัตรประชาชนผิด
     #     """Test deposit through bank counter with wrong citizen ID"""
