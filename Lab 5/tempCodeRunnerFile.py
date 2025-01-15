@@ -1,19 +1,32 @@
-aw_over_limit(self): # 3. ทดสอบการถอนเงินเกินจำนวนที่กำหนด
-        # Initial balance check
-        initial_balance = self.steve_savings.balance
+def test_fixed_withdraw_before_maturity(self): # 8. ทดสอบการถอนเงินก่อนวันครบกำหนด 
+        """Test withdrawal before maturity period with reduced interest"""
+        from datetime import datetime, timedelta
         
-        # Attempt withdrawal
-        withdraw_amount = 60000  # Over 50,000 limit
-        result = self.atm1.insert_card(self.steve_shopping_card, "5678")
+        # Initial deposit
+        initial_deposit = 100000
+        fixed_account = FixedAccount("FIX003", self.tony, 12)  # 12 months period
+        fixed_account.deposit("COUNTER:001", initial_deposit)
         
-        # Verify card insertion
-        self.assertNotEqual(result, "Error", "Card verification should succeed")
+        # Simulate time passing (6 months)
+        # Mock the deposit_date to be 6 months ago
+        fixed_account._FixedAccount__deposit_date = datetime.now() - timedelta(days=180)
         
-        # Perform withdrawal and verify result
-        withdraw_result = self.atm1.withdraw(result, withdraw_amount)
-        self.assertIn("Error", withdraw_result, 
-                     "Should return error for withdrawal over limit")
+        # Try to withdraw
+        withdraw_amount = 50000
+        result = fixed_account.withdraw("COUNTER:001", withdraw_amount)
         
-        # Verify balance unchanged
-        self.assertEqual(self.steve_savings.balance, initial_balance, 
-                        "Balance shoul
+        # Verify withdrawal success
+        self.assertEqual(result, "Success", "Withdrawal should be successful")
+        
+        # Check if reduced interest was applied
+        transactions = fixed_account.list_transaction()
+        interest_transaction = [t for t in transactions if str(t).startswith("I-")]
+        self.assertGreater(len(interest_transaction), 0, 
+                        "Interest transaction should exist")
+        
+        # Verify reduced interest rate (should be around 1.25% for 6 months)
+        # Base rate is 2.5% per year, so 6 months should be approximately half
+        expected_interest = initial_deposit * 0.0125  # Approximately half of 2.5%
+        actual_interest = float(str(interest_transaction[-1]).split("-")[2])
+        self.assertAlmostEqual(actual_interest, expected_interest, delta=1, 
+                            msg="Interest should be calculated at reduced rate")
