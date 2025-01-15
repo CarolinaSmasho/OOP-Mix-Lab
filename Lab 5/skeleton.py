@@ -144,8 +144,10 @@ class Account:
         return "Success"
 
     def withdraw(self, channel_id, amount):
-        if amount > self.balance:
+        if self.balance == 0:
             return "Error: No initial deposit"
+        if amount > self.balance:
+            return "Error : not enough money"
         if amount > self.limit and self.limit != 0 :
             return "Error"
         daycount = (datetime.now() - self.__deposit_date).days
@@ -698,84 +700,84 @@ class BankingTest(unittest.TestCase):
         self.assertAlmostEqual(fixed_account.balance, expected_final_balance, delta=1,
                             msg="Final balance should reflect interest and withdrawal")
 
-    # def test_current_account_basic_deposit(self): # 12. ทดสอบการฝากเงินในบัญชีกระแสรายวัน
-    #     """Test basic deposit functionality for current account"""
-    #     # Initial setup
-    #     initial_balance = self.thanos_current.balance
-    #     deposit_amount = 50000
+    def test_current_account_basic_deposit(self): # 12. ทดสอบการฝากเงินในบัญชีกระแสรายวัน
+        """Test basic deposit functionality for current account"""
+        # Initial setup
+        initial_balance = self.thanos_current.balance
+        deposit_amount = 50000
         
-    #     # Perform deposit via counter
-    #     result = self.counter.deposit(
-    #         self.thanos_current, 
-    #         deposit_amount,
-    #         self.thanos_current.account_no,
-    #         self.thanos.citizen_id
-    #     )
+        # Perform deposit via counter
+        result = self.counter.deposit(
+            self.thanos_current, 
+            deposit_amount,
+            self.thanos_current.account_no,
+            self.thanos.citizen_id
+        )
         
-    #     # Verify deposit success
-    #     self.assertEqual(result, "Success", "Deposit should be successful")
+        # Verify deposit success
+        self.assertEqual(result, "Success", "Deposit should be successful")
         
-    #     # Check balance update
-    #     expected_balance = initial_balance + deposit_amount
-    #     self.assertEqual(self.thanos_current.balance, expected_balance,
-    #                     f"Balance should be {expected_balance}")
+        # Check balance update
+        expected_balance = initial_balance + deposit_amount
+        self.assertEqual(self.thanos_current.balance, expected_balance,
+                        f"Balance should be {expected_balance}")
         
-    #     # Verify transaction record
-    #     transactions = self.thanos_current.list_transaction()
-    #     latest_transaction = transactions[-1]
-    #     self.assertIn("D-COUNTER:", str(latest_transaction),
-    #                 "Transaction should be recorded as counter deposit")
+        # Verify transaction record
+        transactions = self.thanos_current.list_transaction()
+        latest_transaction = transactions[-1]
+        self.assertIn("D-COUNTER:", str(latest_transaction),
+                    "Transaction should be recorded as counter deposit")
 
-    # def test_current_account_large_withdrawal(self): # 13. ทดสอบการถอนเงินในจำนวนมากในบัญชีกระแสรายวัน
-    #     """Test large withdrawal from current account (no limit unlike savings)"""
-    #     # Initial setup
-    #     initial_balance = self.thanos_current.balance
-    #     large_withdrawal = 100000  # Amount larger than savings account limit
+    def test_current_account_large_withdrawal(self): # 13. ทดสอบการถอนเงินในจำนวนมากในบัญชีกระแสรายวัน
+        """Test large withdrawal from current account (no limit unlike savings)"""
+        # Initial setup
+        initial_balance = self.thanos_current.balance
+        large_withdrawal = 100000  # Amount larger than savings account limit
         
-    #     # Perform withdrawal via counter
-    #     result = self.counter.withdraw(
-    #         self.thanos_current,
-    #         large_withdrawal,
-    #         self.thanos_current.account_no,
-    #         self.thanos.citizen_id
-    #     )
+        # Perform withdrawal via counter
+        result = self.counter.withdraw(
+            self.thanos_current,
+            large_withdrawal,
+            self.thanos_current.account_no,
+            self.thanos.citizen_id
+        )
         
-    #     # Verify withdrawal success
-    #     self.assertEqual(result, "Success", 
-    #                     "Large withdrawal should be successful for current account")
+        # Verify withdrawal success
+        self.assertEqual(result, "Success", 
+                        "Large withdrawal should be successful for current account")
         
-    #     # Check balance update
-    #     expected_balance = initial_balance - large_withdrawal
-    #     self.assertEqual(self.thanos_current.balance, expected_balance,
-    #                     f"Balance should be {expected_balance}")
+        # Check balance update
+        expected_balance = initial_balance - large_withdrawal
+        self.assertEqual(self.thanos_current.balance, expected_balance,
+                        f"Balance should be {expected_balance}")
         
-    #     # Verify transaction record
-    #     transactions = self.thanos_current.list_transaction()
-    #     latest_transaction = transactions[-1]
-    #     self.assertIn("W-COUNTER:", str(latest_transaction),
-    #                 "Transaction should be recorded as counter withdrawal")
+        # Verify transaction record
+        transactions = self.thanos_current.list_transaction()
+        latest_transaction = transactions[-1]
+        self.assertIn("W-COUNTER:", str(latest_transaction),
+                    "Transaction should be recorded as counter withdrawal")
 
-    # def test_current_account_overdraft_attempt(self): # 14. ทดสอบการถอนเงินเกินจำนวนเงินในบัญชี
-    #     """Test withdrawal attempt exceeding balance"""
-    #     # Try to withdraw more than available balance
-    #     current_balance = self.thanos_current.balance
-    #     excessive_amount = current_balance + 10000
+    def test_current_account_overdraft_attempt(self): # 14. ทดสอบการถอนเงินเกินจำนวนเงินในบัญชี
+        """Test withdrawal attempt exceeding balance"""
+        # Try to withdraw more than available balance
+        current_balance = self.thanos_current.balance
+        excessive_amount = current_balance + 10000
         
-    #     # Perform withdrawal
-    #     result = self.counter.withdraw(
-    #         self.thanos_current,
-    #         excessive_amount,
-    #         self.thanos_current.account_no,
-    #         self.thanos.citizen_id
-    #     )
+        # Perform withdrawal
+        result = self.counter.withdraw(
+            self.thanos_current,
+            excessive_amount,
+            self.thanos_current.account_no,
+            self.thanos.citizen_id
+        )
         
-    #     # Verify withdrawal rejection
-    #     self.assertEqual(result, "Error : not enough money",
-    #                     "Overdraft should not be allowed")
+        # Verify withdrawal rejection
+        self.assertEqual(result, "Error : not enough money",
+                        "Overdraft should not be allowed")
         
-    #     # Verify balance unchanged
-    #     self.assertEqual(self.thanos_current.balance, current_balance,
-    #                     "Balance should remain unchanged after failed withdrawal")
+        # Verify balance unchanged
+        self.assertEqual(self.thanos_current.balance, current_balance,
+                        "Balance should remain unchanged after failed withdrawal")
 
     # def test_current_account_merchant_payment(self): # 15. ทดสอบการชำระเงินผ่านบัญชีกระแสรายวันผ่าน EDC
     #     """Test merchant payment processing through EDC"""

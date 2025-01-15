@@ -1,37 +1,28 @@
-def test_fixed_withdraw_at_maturity(self): # 11. ทดสอบการถอนเงินในวันครบกำหนด
-    #     """Test withdrawal at maturity period with full interest"""
-    #     from datetime import datetime, timedelta
+nt_large_withdrawal(self): # 13. ทดสอบการถอนเงินในจำนวนมากในบัญชีกระแสรายวัน
+        """Test large withdrawal from current account (no limit unlike savings)"""
+        # Initial setup
+        initial_balance = self.thanos_current.balance
+        large_withdrawal = 100000  # Amount larger than savings account limit
         
-    #     # Initial deposit
-    #     initial_deposit = 100000
-    #     fixed_account = FixedAccount("FIX006", self.tony, 12)  # 12 months period
-    #     fixed_account.deposit("COUNTER:001", initial_deposit)
+        # Perform withdrawal via counter
+        result = self.counter.withdraw(
+            self.thanos_current,
+            large_withdrawal,
+            self.thanos_current.account_no,
+            self.thanos.citizen_id
+        )
         
-    #     # Simulate time passing (12 months)
-    #     # Mock the deposit_date to be 12 months ago
-    #     fixed_account._FixedAccount__deposit_date = datetime.now() - timedelta(days=365)
+        # Verify withdrawal success
+        self.assertEqual(result, "Success", 
+                        "Large withdrawal should be successful for current account")
         
-    #     # Try to withdraw
-    #     withdraw_amount = initial_deposit
-    #     # FIXME: 
-    #     result = fixed_account.withdraw("COUNTER:001", withdraw_amount)
+        # Check balance update
+        expected_balance = initial_balance - large_withdrawal
+        self.assertEqual(self.thanos_current.balance, expected_balance,
+                        f"Balance should be {expected_balance}")
         
-    #     # Verify withdrawal success
-    #     self.assertEqual(result, "Success", "Withdrawal should be successful")
-        
-    #     # Check if full interest was applied
-    #     transactions = fixed_account.list_transaction()
-    #     interest_transaction = [t for t in transactions if str(t).startswith("I-")]
-    #     self.assertGreater(len(interest_transaction), 0, 
-    #                     "Interest transaction should exist")
-        
-    #     # Verify full interest rate (2.5% for 12 months)
-    #     expected_interest = initial_deposit * 0.025  # Full 2.5% annual rate
-    #     actual_interest = float(str(interest_transaction[-1]).split("-")[2])
-    #     self.assertAlmostEqual(actual_interest, expected_interest, delta=1, 
-    #                         msg="Interest should be calculated at full rate")
-        
-    #     # Verify final balance after interest and withdrawal
-    #     expected_final_balance = initial_deposit + expected_interest - withdraw_amount
-    #     self.assertAlmostEqual(fixed_account.balance, expected_final_balance, delta=1,
-    #                         msg="Final balance should refle
+        # Verify transaction record
+        transactions = self.thanos_current.list_transaction()
+        latest_transaction = transactions[-1]
+        self.assertIn("W-COUNTER:", str(latest_transaction),
+                    "Transaction should be recorded as counter w
